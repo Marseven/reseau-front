@@ -1,81 +1,70 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { login as loginAction, logout as logoutAction } from '@/store/users';
+import api from '@/axios';
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user' | 'technician';
+  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock users data
-const mockUsers: (User & { password: string })[] = [
-  {
-    id: '1',
-    email: 'admin@telecom.fr',
-    password: 'admin123',
-    name: 'Administrateur',
-    role: 'admin'
-  },
-  {
-    id: '2',
-    email: 'tech@telecom.fr',
-    password: 'tech123',
-    name: 'Technicien Réseau',
-    role: 'technician'
-  },
-  {
-    id: '3',
-    email: 'user@telecom.fr',
-    password: 'user123',
-    name: 'Utilisateur',
-    role: 'user'
-  }
-];
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    // Check if user is stored in localStorage
     const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const storedToken = localStorage.getItem('authToken');
+    if (storedUser && storedToken) {
+      const parsed = JSON.parse(storedUser);
+      setUser(parsed);
+      dispatch(loginAction({ user: parsed, token: storedToken }));
     }
-  }, []);
+  }, [dispatch]);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const foundUser = mockUsers.find(u => u.email === email && u.password === password);
-    
-    if (foundUser) {
-      const userWithoutPassword = {
-        id: foundUser.id,
-        email: foundUser.email,
-        name: foundUser.name,
-        role: foundUser.role
-      };
-      setUser(userWithoutPassword);
-      localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-      return true;
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const response = await api.post('/auth/login', { username, password });
+
+      if (response.data.status === 200 && response.data.data?.token) {
+        const userData = response.data.data.user;
+        const token = response.data.data.token;
+
+        setUser(userData);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('authToken', token);
+        dispatch(loginAction({ user: userData, token }));
+        return true;
+      }
+
+      return false;
+    } catch {
+      return false;
     }
-    
-    return false;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('currentUser');
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Token may already be expired
+    } finally {
+      setUser(null);
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('authToken');
+      dispatch(logoutAction());
+    }
   };
 
   const isAuthenticated = !!user;
