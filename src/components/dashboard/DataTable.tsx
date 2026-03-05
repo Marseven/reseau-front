@@ -58,70 +58,68 @@ export default function DataTable({ title, columns, data, onFilter, onExport }: 
     handleItemsPerPageChange
   } = usePagination(data);
 
+  const isStatusColumn = (column: string) => {
+    const lower = column.toLowerCase();
+    return lower.includes('état') || lower.includes('status') || lower.includes('etat') || lower.includes('gravité');
+  };
+
+  const isCodeColumn = (column: string) => {
+    const lower = column.toLowerCase();
+    return lower === 'id' || lower === 'label' || lower === 'horodatage' || lower === 'heure';
+  };
+
   const renderCellContent = (value: any, column: string) => {
-    // Handle undefined/null values
-    if (value === undefined || value === null) {
-      return <span className="text-muted-foreground">-</span>;
+    if (value === undefined || value === null || value === '') {
+      return <span className="text-muted-foreground">—</span>;
     }
 
-    // Convert to string for safety
     const stringValue = String(value);
-    
-    if (column.toLowerCase().includes('état') || column.toLowerCase().includes('status') || column.toLowerCase().includes('etat')) {
-      // Map common status values to StatusType
+
+    if (isStatusColumn(column)) {
       const statusMapping: { [key: string]: "up" | "down" | "warn" | "maintenance" | "ok" | "actif" | "fermee" } = {
-        'actif': 'actif',
-        'active': 'actif', 
-        'up': 'up',
-        'en ligne': 'up',
-        'maintenance': 'maintenance',
-        'down': 'down',
-        'inactif': 'down',
-        'inactive': 'down',
-        'hors service': 'down',
-        'warn': 'warn',
-        'warning': 'warn',
-        'alerte': 'warn',
-        'ok': 'ok',
-        'fermee': 'fermee',
-        'fermée': 'fermee'
+        'actif': 'actif', 'active': 'actif', 'up': 'up', 'en ligne': 'up',
+        'maintenance': 'maintenance', 'down': 'down', 'inactif': 'down',
+        'inactive': 'down', 'hors service': 'down', 'warn': 'warn',
+        'warning': 'warn', 'alerte': 'warn', 'ok': 'ok', 'fermee': 'fermee',
+        'fermée': 'fermee',
       };
-      
-      const mappedStatus = statusMapping[stringValue.toLowerCase()] || 'ok';
-      return <StatusBadge status={mappedStatus} />;
+      const mapped = statusMapping[stringValue.toLowerCase()] || 'ok';
+      return <StatusBadge status={mapped} />;
     }
-    if (column.toLowerCase().includes('température')) {
-      return <span className="text-foreground">{stringValue}</span>;
+
+    if (isCodeColumn(column)) {
+      return <span className="font-mono text-xs text-[hsl(36,90%,55%)]">{stringValue}</span>;
     }
+
     return <span className="text-foreground">{stringValue}</span>;
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        <div className="flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <div className="flex items-center gap-1.5">
           {onFilter && (
-            <Button variant="outline" size="sm" onClick={onFilter}>
-              <Filter className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={onFilter} className="h-7 text-xs border-border">
+              <Filter className="h-3 w-3 mr-1.5" />
               Filtrer
             </Button>
           )}
           {onExport && (
-            <Button variant="outline" size="sm" onClick={onExport} className="bg-accent text-accent-foreground">
-              <Download className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" onClick={onExport} className="h-7 text-xs bg-[hsl(36,90%,50%)] text-[hsl(224,50%,5%)] border-transparent hover:bg-[hsl(36,90%,55%)]">
+              <Download className="h-3 w-3 mr-1.5" />
               Exporter
             </Button>
           )}
         </div>
       </div>
 
-      <div className="rounded-lg border border-border bg-card">
+      <div className="rounded-lg border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="bg-table-header hover:bg-table-header">
+            <TableRow className="bg-[hsl(var(--table-header))] hover:bg-[hsl(var(--table-header))] border-b border-border">
               {columns.map((column) => (
-                <TableHead key={column} className="text-primary-foreground font-medium">
+                <TableHead key={column} className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">
                   {column}
                 </TableHead>
               ))}
@@ -129,9 +127,9 @@ export default function DataTable({ title, columns, data, onFilter, onExport }: 
           </TableHeader>
           <TableBody>
             {paginatedData.map((row, index) => (
-              <TableRow key={index} className="hover:bg-table-row-hover border-border">
+              <TableRow key={index} className="hover:bg-[hsl(var(--table-row-hover))] border-border transition-colors">
                 {columns.map((column, colIndex) => (
-                  <TableCell key={colIndex} className="text-card-foreground">
+                  <TableCell key={colIndex} className="text-sm py-2.5">
                     {renderCellContent(row[column], column)}
                   </TableCell>
                 ))}

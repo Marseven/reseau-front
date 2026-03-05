@@ -8,45 +8,61 @@ interface StatusBadgeProps {
 }
 
 const statusConfig = {
-  up: { 
-    color: "bg-status-up text-white",
+  up: {
+    bg: "bg-[hsl(var(--status-up))]/10",
+    text: "text-[hsl(var(--status-up))]",
+    dot: "bg-[hsl(var(--status-up))]",
     label: "UP"
   },
-  down: { 
-    color: "bg-status-down text-white",
+  down: {
+    bg: "bg-[hsl(var(--status-down))]/10",
+    text: "text-[hsl(var(--status-down))]",
+    dot: "bg-[hsl(var(--status-down))]",
     label: "DOWN"
   },
-  warn: { 
-    color: "bg-status-warn text-black",
+  warn: {
+    bg: "bg-[hsl(var(--status-warn))]/10",
+    text: "text-[hsl(var(--status-warn))]",
+    dot: "bg-[hsl(var(--status-warn))]",
     label: "WARN"
   },
-  maintenance: { 
-    color: "bg-status-maintenance text-black",
+  maintenance: {
+    bg: "bg-[hsl(var(--status-warn))]/10",
+    text: "text-[hsl(var(--status-warn))]",
+    dot: "bg-[hsl(var(--status-warn))]",
     label: "Maintenance"
   },
-  ok: { 
-    color: "bg-status-ok text-white",
+  ok: {
+    bg: "bg-[hsl(var(--status-ok))]/10",
+    text: "text-[hsl(var(--status-ok))]",
+    dot: "bg-[hsl(var(--status-ok))]",
     label: "OK"
   },
-  actif: { 
-    color: "bg-status-up text-white",
+  actif: {
+    bg: "bg-[hsl(var(--status-up))]/10",
+    text: "text-[hsl(var(--status-up))]",
+    dot: "bg-[hsl(var(--status-up))]",
     label: "Actif"
   },
-  fermee: { 
-    color: "bg-status-down text-white",
+  fermee: {
+    bg: "bg-[hsl(var(--status-down))]/10",
+    text: "text-[hsl(var(--status-down))]",
+    dot: "bg-[hsl(var(--status-down))]",
     label: "Fermée"
-  }
+  },
 };
 
 export default function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status] || statusConfig.ok;
-  
+
   return (
     <span className={cn(
-      "px-2 py-1 rounded-md text-xs font-medium uppercase tracking-wide",
-      config.color,
+      "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wider",
+      config.bg,
+      config.text,
       className
     )}>
+      <span className={cn("w-1.5 h-1.5 rounded-full", config.dot)} />
       {config.label}
     </span>
   );

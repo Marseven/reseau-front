@@ -1,8 +1,7 @@
-import { Server, Router, Cable, Activity } from "lucide-react";
+import { Server, Router, Cable, Activity, Clock } from "lucide-react";
 import StatsCard from "./StatsCard";
 import DataTable from "./DataTable";
 
-// Sample data matching the screenshots
 const armoiresData = [
   { ID: "CAB-001", Emplacement: "Salle R-201 12", Équipements: "", État: "Actif" },
   { ID: "CAB-014", Emplacement: "Niveau -1 9", Équipements: "Local Tech", État: "Maintenance" },
@@ -30,69 +29,54 @@ const activiteData = [
 export default function DashboardOverview() {
   return (
     <div className="space-y-6">
-      {/* Status header */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Vue d'ensemble</h2>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight">
+            Vue d'ensemble
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Monitoring temps réel de l'infrastructure
+          </p>
         </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card border border-border rounded-lg px-3 py-2">
+          <Clock className="h-3.5 w-3.5" />
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-status-up"></div>
-            <span>Système opérationnel</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--status-up))] animate-pulse" />
+            <span>Dernière synchro: il y a 5 min</span>
           </div>
-          <span>Dernière synchro: il y a 5 min</span>
         </div>
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatsCard
-          title="Armoires"
-          value="36"
-          icon={Server}
-        />
-        <StatsCard
-          title="Équipements"
-          value="248"
-          icon={Router}
-        />
-        <StatsCard
-          title="Ports"
-          value="5 920"
-          icon={Cable}
-        />
-        <StatsCard
-          title="Liaisons actives"
-          value="412"
-          icon={Activity}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard title="Armoires" value="36" icon={Server} />
+        <StatsCard title="Équipements" value="248" icon={Router} />
+        <StatsCard title="Ports" value="5 920" icon={Cable} />
+        <StatsCard title="Liaisons actives" value="412" icon={Activity} />
       </div>
 
       {/* Data sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DataTable
           title="Armoires – Aperçu rapide"
           columns={["ID", "Emplacement", "Équipements", "État"]}
           data={armoiresData}
           onFilter={() => {}}
         />
-
-        <div className="space-y-6">
-          <DataTable
-            title="Monitoring – Derniers événements"
-            columns={["Horodatage", "Événement", "Source", "Gravité"]}
-            data={monitoringData}
-          />
-        </div>
+        <DataTable
+          title="Monitoring – Derniers événements"
+          columns={["Horodatage", "Événement", "Source", "Gravité"]}
+          data={monitoringData}
+        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DataTable
           title="Top liaisons par longueur"
           columns={["Label", "Média", "Longueur (m)"]}
           data={liaisonsData}
         />
-
         <DataTable
           title="Activité récente"
           columns={["Heure", "Action", "Utilisateur"]}

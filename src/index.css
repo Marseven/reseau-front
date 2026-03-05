@@ -2,116 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    /* Light theme base - Professional telecom management */
-    --background: 0 0% 100%;
-    --foreground: 220 25% 15%;
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 15%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 15%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Primary: Deep blue for active elements */
-    --primary: 220 100% 25%;
+    --primary: 36 90% 50%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Light blue for inactive tabs */
-    --secondary: 210 20% 95%;
-    --secondary-foreground: 220 25% 15%;
+    --secondary: 215 20% 93%;
+    --secondary-foreground: 222 47% 11%;
 
-    /* Muted: Subtle backgrounds */
-    --muted: 210 20% 97%;
-    --muted-foreground: 220 15% 50%;
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    /* Accent: Vibrant blue for highlights */
-    --accent: 220 100% 50%;
+    --accent: 36 90% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 75% 55%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 90%;
-    --input: 210 20% 97%;
-    --ring: 220 100% 50%;
+    --border: 214 20% 88%;
+    --input: 214 20% 88%;
+    --ring: 36 90% 50%;
 
-    /* Status colors */
-    --status-up: 142 70% 45%;
-    --status-down: 0 75% 55%;
-    --status-warn: 38 95% 56%;
-    --status-maintenance: 38 95% 56%;
-    --status-ok: 142 70% 45%;
+    --status-up: 152 69% 41%;
+    --status-down: 0 72% 51%;
+    --status-warn: 38 92% 50%;
+    --status-maintenance: 38 92% 50%;
+    --status-ok: 152 69% 41%;
 
-    /* Navigation */
-    --nav-background: 0 0% 100%;
-    --nav-active: 220 100% 25%;
-    --nav-text: 220 25% 15%;
+    --nav-background: 222 47% 11%;
+    --nav-active: 36 90% 50%;
+    --nav-text: 215 20% 75%;
 
-    /* Table headers */
-    --table-header: 220 100% 25%;
-    --table-row-hover: 210 20% 98%;
+    --table-header: 222 47% 11%;
+    --table-row-hover: 215 20% 96%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 215 20% 75%;
+    --sidebar-primary: 36 90% 50%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 40% 16%;
+    --sidebar-accent-foreground: 215 20% 85%;
+    --sidebar-border: 222 40% 18%;
+    --sidebar-ring: 36 90% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 224 50% 5%;
+    --foreground: 210 20% 92%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 224 44% 8%;
+    --card-foreground: 210 20% 92%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 224 44% 8%;
+    --popover-foreground: 210 20% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 36 90% 50%;
+    --primary-foreground: 224 50% 5%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 222 40% 14%;
+    --secondary-foreground: 210 20% 85%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 222 40% 14%;
+    --muted-foreground: 215 16% 50%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 36 90% 50%;
+    --accent-foreground: 224 50% 5%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 222 30% 16%;
+    --input: 222 30% 16%;
+    --ring: 36 90% 50%;
+
+    --status-up: 152 69% 41%;
+    --status-down: 0 72% 51%;
+    --status-warn: 38 92% 50%;
+    --status-maintenance: 38 92% 50%;
+    --status-ok: 152 69% 41%;
+
+    --nav-background: 224 50% 4%;
+    --nav-active: 36 90% 50%;
+    --nav-text: 215 16% 55%;
+
+    --table-header: 222 40% 12%;
+    --table-row-hover: 222 40% 10%;
+
+    --sidebar-background: 224 50% 4%;
+    --sidebar-foreground: 215 16% 55%;
+    --sidebar-primary: 36 90% 50%;
+    --sidebar-primary-foreground: 224 50% 5%;
+    --sidebar-accent: 222 40% 10%;
+    --sidebar-accent-foreground: 210 20% 85%;
+    --sidebar-border: 222 30% 12%;
+    --sidebar-ring: 36 90% 50%;
   }
 }
 
@@ -122,5 +117,81 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Outfit', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  code, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+@layer utilities {
+  .text-gradient-copper {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(36 90% 55%), hsl(28 85% 45%));
+  }
+
+  .glow-copper {
+    box-shadow: 0 0 20px hsla(36, 90%, 50%, 0.15),
+                0 0 60px hsla(36, 90%, 50%, 0.05);
+  }
+
+  .glow-copper-strong {
+    box-shadow: 0 0 30px hsla(36, 90%, 50%, 0.25),
+                0 0 80px hsla(36, 90%, 50%, 0.1);
+  }
+
+  .border-glow {
+    border-color: hsla(36, 90%, 50%, 0.3);
+  }
+
+  .glass-panel {
+    background: hsla(224, 44%, 8%, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .noise-overlay {
+    position: relative;
+  }
+
+  .noise-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Network topology animation */
+@keyframes pulse-node {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes dash-line {
+  to { stroke-dashoffset: -20; }
+}
+
+@keyframes float-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-float-up {
+  animation: float-up 0.6s ease-out both;
+}
+
+.animate-shimmer {
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
 }
