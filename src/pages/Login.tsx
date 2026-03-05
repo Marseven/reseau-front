@@ -64,7 +64,7 @@ const Login = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@telecom.fr"
+                placeholder="nom@exemple.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -86,15 +86,6 @@ const Login = () => {
               Se connecter
             </Button>
           </form>
-          
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium mb-2">Comptes de test :</p>
-            <div className="text-xs space-y-1">
-              <p><strong>Admin:</strong> admin@telecom.fr / admin123</p>
-              <p><strong>Technicien:</strong> tech@telecom.fr / tech123</p>
-              <p><strong>Utilisateur:</strong> user@telecom.fr / user123</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>
