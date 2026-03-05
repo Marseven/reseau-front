@@ -10,10 +10,14 @@ import {
   Wrench,
   Users,
   LogOut,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface SidebarProps {
   activeSection: string;
@@ -31,8 +35,15 @@ const menuItems = [
   { id: "parametres", label: "Paramètres", icon: Settings },
 ];
 
+const themeOptions = [
+  { value: "light" as const, icon: Sun, label: "Clair" },
+  { value: "dark" as const, icon: Moon, label: "Sombre" },
+  { value: "system" as const, icon: Monitor, label: "Système" },
+];
+
 export default function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -97,8 +108,27 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
         </div>
       </nav>
 
-      {/* User & Footer */}
+      {/* Footer */}
       <div className="p-4 border-t border-sidebar-border space-y-3">
+        {/* Theme toggle */}
+        <div className="flex items-center gap-1 bg-sidebar-accent rounded-lg p-1">
+          {themeOptions.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTheme(opt.value)}
+              title={opt.label}
+              className={cn(
+                "flex-1 flex items-center justify-center h-7 rounded-md transition-all duration-200",
+                theme === opt.value
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                  : "text-sidebar-foreground hover:text-sidebar-accent-foreground"
+              )}
+            >
+              <opt.icon className="h-3.5 w-3.5" />
+            </button>
+          ))}
+        </div>
+
         {/* Status */}
         <div className="flex items-center gap-2 px-1">
           <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--status-up))] animate-pulse" />
