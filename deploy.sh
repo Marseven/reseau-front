@@ -89,12 +89,25 @@ info "Configuration .htaccess..."
 cat > "$PUBLIC_HTML/.htaccess" << 'HTACCESS'
 # ── ReseauApp SPA - Apache Configuration ──
 
-# ── MIME Types ──
-AddType application/javascript .js .mjs
-AddType text/css .css
-AddType application/json .json
-AddType application/wasm .wasm
-AddType image/svg+xml .svg
+# ── MIME Types (ForceType pour surcharger la config serveur) ──
+<FilesMatch "\.js$">
+    ForceType application/javascript
+</FilesMatch>
+<FilesMatch "\.mjs$">
+    ForceType application/javascript
+</FilesMatch>
+<FilesMatch "\.css$">
+    ForceType text/css
+</FilesMatch>
+<FilesMatch "\.json$">
+    ForceType application/json
+</FilesMatch>
+<FilesMatch "\.svg$">
+    ForceType image/svg+xml
+</FilesMatch>
+<FilesMatch "\.wasm$">
+    ForceType application/wasm
+</FilesMatch>
 
 # Activer le moteur de réécriture
 RewriteEngine On
