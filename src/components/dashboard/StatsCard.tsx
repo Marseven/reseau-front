@@ -13,9 +13,9 @@ interface StatsCardProps {
 
 export default function StatsCard({ title, value, icon: Icon, trend }: StatsCardProps) {
   return (
-    <Card className="relative overflow-hidden p-5 bg-card border-border hover:border-[hsl(36,90%,50%)]/20 transition-all duration-300 group">
+    <Card className="relative overflow-hidden p-5 bg-card border-border hover:border-primary/20 transition-all duration-300 group">
       {/* Subtle corner accent */}
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-[hsl(36,90%,50%)]/5 to-transparent rounded-bl-[40px]" />
+      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-[40px]" />
 
       <div className="flex items-start justify-between relative">
         <div>
@@ -35,8 +35,8 @@ export default function StatsCard({ title, value, icon: Icon, trend }: StatsCard
             )}
           </div>
         </div>
-        <div className="p-2.5 rounded-lg bg-[hsl(36,90%,50%)]/10 group-hover:bg-[hsl(36,90%,50%)]/15 transition-colors">
-          <Icon className="h-5 w-5 text-[hsl(36,90%,50%)]" />
+        <div className="p-2.5 rounded-lg bg-primary/10 group-hover:bg-primary/15 transition-colors">
+          <Icon className="h-5 w-5 text-primary" />
         </div>
       </div>
     </Card>

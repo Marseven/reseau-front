@@ -50,11 +50,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
       {/* Header */}
       <div className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[hsl(36,90%,55%)] to-[hsl(28,85%,40%)] flex items-center justify-center flex-shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(224,50%,5%)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><path d="m4.93 4.93 2.83 2.83m8.48 8.48 2.83 2.83m-2.83-14.14 2.83-2.83M4.93 19.07l2.83-2.83"/>
-            </svg>
-          </div>
+          <img src="/logo.png" alt="Eramet Comilog" className="h-9 w-auto flex-shrink-0" />
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-wide">
               ReseauApp

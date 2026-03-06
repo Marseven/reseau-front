@@ -138,7 +138,7 @@ export default function TwoFactorSetupDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-[hsl(36,90%,55%)]" />
+                <ShieldCheck className="h-5 w-5 text-primary" />
                 Configurer la 2FA
               </DialogTitle>
               <DialogDescription>
@@ -189,7 +189,7 @@ export default function TwoFactorSetupDialog({
               <Button
                 onClick={() => setStep("verify")}
                 disabled={!secret}
-                className="bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)]"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 Suivant
               </Button>
@@ -201,7 +201,7 @@ export default function TwoFactorSetupDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-[hsl(36,90%,55%)]" />
+                <ShieldCheck className="h-5 w-5 text-primary" />
                 Vérifier le code
               </DialogTitle>
               <DialogDescription>
@@ -237,7 +237,7 @@ export default function TwoFactorSetupDialog({
               <Button
                 onClick={handleVerify}
                 disabled={otpCode.length < 6 || isLoading}
-                className="bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)]"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -299,7 +299,7 @@ export default function TwoFactorSetupDialog({
             <DialogFooter>
               <Button
                 onClick={handleFinish}
-                className="w-full bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)]"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 J'ai sauvegardé mes codes
               </Button>

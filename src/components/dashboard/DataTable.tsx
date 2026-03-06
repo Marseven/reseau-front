@@ -88,7 +88,7 @@ export default function DataTable({ title, columns, data, onFilter, onExport }: 
     }
 
     if (isCodeColumn(column)) {
-      return <span className="font-mono text-xs text-[hsl(36,90%,55%)]">{stringValue}</span>;
+      return <span className="font-mono text-xs text-primary">{stringValue}</span>;
     }
 
     return <span className="text-foreground">{stringValue}</span>;
@@ -106,7 +106,7 @@ export default function DataTable({ title, columns, data, onFilter, onExport }: 
             </Button>
           )}
           {onExport && (
-            <Button variant="outline" size="sm" onClick={onExport} className="h-7 text-xs bg-[hsl(36,90%,50%)] text-[hsl(224,50%,5%)] border-transparent hover:bg-[hsl(36,90%,55%)]">
+            <Button variant="outline" size="sm" onClick={onExport} className="h-7 text-xs bg-primary text-primary-foreground border-transparent hover:bg-primary/90">
               <Download className="h-3 w-3 mr-1.5" />
               Exporter
             </Button>

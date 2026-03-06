@@ -55,7 +55,7 @@ function NetworkCanvas() {
       pulseSpeed: 0.01 + Math.random() * 0.02,
     }));
 
-    const copper = { r: 217, g: 149, b: 42 }; // hsl(36 90% 50%) approx
+    const brand = { r: 48, g: 53, b: 93 }; // #30355d
 
     const draw = () => {
       const w = canvas.offsetWidth;
@@ -81,11 +81,11 @@ function NetworkCanvas() {
           const dy = nodes[i].y - nodes[j].y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < maxDist) {
-            const alpha = (1 - dist / maxDist) * 0.2;
+            const alpha = (1 - dist / maxDist) * 0.25;
             ctx.beginPath();
             ctx.moveTo(nodes[i].x, nodes[i].y);
             ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.strokeStyle = `rgba(${copper.r}, ${copper.g}, ${copper.b}, ${alpha})`;
+            ctx.strokeStyle = `rgba(${brand.r}, ${brand.g}, ${brand.b}, ${alpha})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -97,13 +97,13 @@ function NetworkCanvas() {
         const glow = 0.3 + Math.sin(n.pulse) * 0.3;
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.radius + Math.sin(n.pulse) * 0.5, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${copper.r}, ${copper.g}, ${copper.b}, ${glow + 0.2})`;
+        ctx.fillStyle = `rgba(${brand.r}, ${brand.g}, ${brand.b}, ${glow + 0.3})`;
         ctx.fill();
 
         // Outer glow
         ctx.beginPath();
         ctx.arc(n.x, n.y, n.radius * 3, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${copper.r}, ${copper.g}, ${copper.b}, ${glow * 0.08})`;
+        ctx.fillStyle = `rgba(${brand.r}, ${brand.g}, ${brand.b}, ${glow * 0.1})`;
         ctx.fill();
       }
 
@@ -237,7 +237,7 @@ const Login = () => {
         {/* Radial accent */}
         <div className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse at 30% 50%, hsla(36, 90%, 50%, 0.06) 0%, transparent 60%)'
+            background: 'radial-gradient(ellipse at 30% 50%, hsla(232, 33%, 28%, 0.08) 0%, transparent 60%)'
           }}
         />
 
@@ -251,13 +251,9 @@ const Login = () => {
             className={`transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[hsl(36,90%,55%)] to-[hsl(28,85%,40%)] flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(224,50%,5%)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><path d="m4.93 4.93 2.83 2.83m8.48 8.48 2.83 2.83m-2.83-14.14 2.83-2.83M4.93 19.07l2.83-2.83"/>
-                </svg>
-              </div>
+              <img src="/logo.png" alt="Eramet Comilog" className="h-10 w-auto" />
               <div>
-                <p className="text-sm font-semibold tracking-wider uppercase text-[hsl(36,90%,55%)]">
+                <p className="text-sm font-semibold tracking-wider uppercase text-[hsl(229,40%,70%)]">
                   Eramet Comilog
                 </p>
                 <p className="text-xs text-[hsl(215,16%,45%)] tracking-wide">
@@ -273,7 +269,7 @@ const Login = () => {
               className={`text-4xl font-bold leading-tight text-[hsl(210,20%,92%)] transition-all duration-700 delay-200 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
             >
               Gestion &<br />
-              <span className="text-gradient-copper">Supervision</span><br />
+              <span className="text-gradient-brand">Supervision</span><br />
               du Réseau
             </h1>
             <p
@@ -293,7 +289,7 @@ const Login = () => {
                 { value: "99.7%", label: "Uptime" },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <p className="text-2xl font-bold text-[hsl(36,90%,55%)] font-mono">
+                  <p className="text-2xl font-bold text-[hsl(229,40%,70%)] font-mono">
                     {stat.value}
                   </p>
                   <p className="text-xs text-[hsl(215,16%,45%)] mt-1 uppercase tracking-wider">
@@ -319,7 +315,7 @@ const Login = () => {
         <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
-            backgroundImage: `linear-gradient(hsl(36,90%,50%) 1px, transparent 1px), linear-gradient(90deg, hsl(36,90%,50%) 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(hsl(232,33%,28%) 1px, transparent 1px), linear-gradient(90deg, hsl(232,33%,28%) 1px, transparent 1px)`,
             backgroundSize: '60px 60px',
           }}
         />
@@ -330,11 +326,7 @@ const Login = () => {
           {/* Mobile logo */}
           <div className="lg:hidden mb-10 text-center">
             <div className="inline-flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[hsl(36,90%,55%)] to-[hsl(28,85%,40%)] flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(224,50%,5%)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M2 12h4m12 0h4"/><path d="m4.93 4.93 2.83 2.83m8.48 8.48 2.83 2.83m-2.83-14.14 2.83-2.83M4.93 19.07l2.83-2.83"/>
-                </svg>
-              </div>
+              <img src="/logo.png" alt="Eramet Comilog" className="h-10 w-auto" />
               <span className="text-lg font-semibold text-foreground">ReseauApp</span>
             </div>
           </div>
@@ -366,7 +358,7 @@ const Login = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors"
+                      className="pl-10 h-11 bg-card border-border focus:border-primary focus:ring-primary/20 transition-colors"
                     />
                   </div>
                 </div>
@@ -384,14 +376,14 @@ const Login = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors"
+                      className="pl-10 h-11 bg-card border-border focus:border-primary focus:ring-primary/20 transition-colors"
                     />
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)] font-semibold hover:from-[hsl(36,90%,55%)] hover:to-[hsl(28,85%,47%)] transition-all duration-300 shadow-lg shadow-[hsl(36,90%,50%)]/10 hover:shadow-[hsl(36,90%,50%)]/20 group"
+                  className="w-full h-11 bg-primary text-white font-semibold hover:bg-[hsl(232,33%,35%)] transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-primary/20 group"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -415,7 +407,7 @@ const Login = () => {
               {/* 2FA verification step */}
               <div className="mb-8">
                 <div className="flex items-center gap-2 mb-2">
-                  <ShieldCheck className="h-6 w-6 text-[hsl(36,90%,55%)]" />
+                  <ShieldCheck className="h-6 w-6 text-primary" />
                   <h2 className="text-2xl font-bold text-foreground tracking-tight">
                     Vérification 2FA
                   </h2>
@@ -443,7 +435,7 @@ const Login = () => {
                         onChange={(e) => setRecoveryCode(e.target.value)}
                         required
                         autoFocus
-                        className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors font-mono tracking-wider"
+                        className="pl-10 h-11 bg-card border-border focus:border-primary focus:ring-primary/20 transition-colors font-mono tracking-wider"
                       />
                     </div>
                   </div>
@@ -472,7 +464,7 @@ const Login = () => {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)] font-semibold hover:from-[hsl(36,90%,55%)] hover:to-[hsl(28,85%,47%)] transition-all duration-300 shadow-lg shadow-[hsl(36,90%,50%)]/10 hover:shadow-[hsl(36,90%,50%)]/20 group"
+                  className="w-full h-11 bg-primary text-white font-semibold hover:bg-[hsl(232,33%,35%)] transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-primary/20 group"
                   disabled={isLoading || (!recoveryMode && otpCode.length < 6) || (recoveryMode && !recoveryCode)}
                 >
                   {isLoading ? (

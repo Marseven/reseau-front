@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 36 90% 50%;
+    --primary: 232 33% 28%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 215 20% 93%;
@@ -22,7 +22,7 @@
     --muted: 215 20% 95%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 36 90% 50%;
+    --accent: 232 33% 28%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
@@ -30,7 +30,7 @@
 
     --border: 214 20% 88%;
     --input: 214 20% 88%;
-    --ring: 36 90% 50%;
+    --ring: 232 33% 28%;
 
     --status-up: 152 69% 41%;
     --status-down: 0 72% 51%;
@@ -39,7 +39,7 @@
     --status-ok: 152 69% 41%;
 
     --nav-background: 222 47% 11%;
-    --nav-active: 36 90% 50%;
+    --nav-active: 232 33% 28%;
     --nav-text: 215 20% 75%;
 
     --table-header: 222 47% 11%;
@@ -49,12 +49,12 @@
 
     --sidebar-background: 222 47% 11%;
     --sidebar-foreground: 215 20% 75%;
-    --sidebar-primary: 36 90% 50%;
+    --sidebar-primary: 232 33% 28%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 40% 16%;
     --sidebar-accent-foreground: 215 20% 85%;
     --sidebar-border: 222 40% 18%;
-    --sidebar-ring: 36 90% 50%;
+    --sidebar-ring: 232 33% 28%;
   }
 
   .dark {
@@ -67,8 +67,8 @@
     --popover: 224 44% 8%;
     --popover-foreground: 210 20% 92%;
 
-    --primary: 36 90% 50%;
-    --primary-foreground: 224 50% 5%;
+    --primary: 229 40% 55%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 222 40% 14%;
     --secondary-foreground: 210 20% 85%;
@@ -76,15 +76,15 @@
     --muted: 222 40% 14%;
     --muted-foreground: 215 16% 50%;
 
-    --accent: 36 90% 50%;
-    --accent-foreground: 224 50% 5%;
+    --accent: 229 40% 55%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 222 30% 16%;
     --input: 222 30% 16%;
-    --ring: 36 90% 50%;
+    --ring: 229 40% 55%;
 
     --status-up: 152 69% 41%;
     --status-down: 0 72% 51%;
@@ -93,7 +93,7 @@
     --status-ok: 152 69% 41%;
 
     --nav-background: 224 50% 4%;
-    --nav-active: 36 90% 50%;
+    --nav-active: 229 40% 55%;
     --nav-text: 215 16% 55%;
 
     --table-header: 222 40% 12%;
@@ -101,12 +101,12 @@
 
     --sidebar-background: 224 50% 4%;
     --sidebar-foreground: 215 16% 55%;
-    --sidebar-primary: 36 90% 50%;
-    --sidebar-primary-foreground: 224 50% 5%;
+    --sidebar-primary: 229 40% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 40% 10%;
     --sidebar-accent-foreground: 210 20% 85%;
     --sidebar-border: 222 30% 12%;
-    --sidebar-ring: 36 90% 50%;
+    --sidebar-ring: 229 40% 55%;
   }
 }
 
@@ -128,23 +128,23 @@
 }
 
 @layer utilities {
-  .text-gradient-copper {
+  .text-gradient-brand {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(36 90% 55%), hsl(28 85% 45%));
+    background-image: linear-gradient(135deg, hsl(232 35% 35%), hsl(232 33% 20%));
   }
 
-  .glow-copper {
-    box-shadow: 0 0 20px hsla(36, 90%, 50%, 0.15),
-                0 0 60px hsla(36, 90%, 50%, 0.05);
+  .glow-brand {
+    box-shadow: 0 0 20px hsla(232, 33%, 28%, 0.15),
+                0 0 60px hsla(232, 33%, 28%, 0.05);
   }
 
-  .glow-copper-strong {
-    box-shadow: 0 0 30px hsla(36, 90%, 50%, 0.25),
-                0 0 80px hsla(36, 90%, 50%, 0.1);
+  .glow-brand-strong {
+    box-shadow: 0 0 30px hsla(232, 33%, 28%, 0.25),
+                0 0 80px hsla(232, 33%, 28%, 0.1);
   }
 
   .border-glow {
-    border-color: hsla(36, 90%, 50%, 0.3);
+    border-color: hsla(232, 33%, 28%, 0.3);
   }
 
   .glass-panel {
