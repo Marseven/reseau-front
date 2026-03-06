@@ -15,6 +15,12 @@ import {
   Monitor,
   MapPin,
   Building2,
+  Layers,
+  DoorOpen,
+  Network,
+  Map,
+  Bell,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,17 +33,62 @@ interface SidebarProps {
   onSectionChange: (section: string) => void;
 }
 
-const menuItems = [
-  { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { id: "sites", label: "Sites", icon: MapPin },
-  { id: "zones", label: "Zones", icon: Building2 },
-  { id: "armoires", label: "Baies", icon: Server },
-  { id: "equipements", label: "Équipements", icon: HardDrive },
-  { id: "liaisons", label: "Liaisons", icon: Cable },
-  { id: "ports", label: "Ports", icon: Router },
-  { id: "maintenance", label: "Maintenance", icon: Wrench },
-  { id: "users", label: "Utilisateurs", icon: Users },
-  { id: "parametres", label: "Paramètres", icon: Settings },
+interface MenuItem {
+  id: string;
+  label: string;
+  icon: any;
+  roles?: string[];
+}
+
+interface MenuGroup {
+  label: string;
+  items: MenuItem[];
+  roles?: string[];
+}
+
+const menuGroups: MenuGroup[] = [
+  {
+    label: "Inventaire",
+    items: [
+      { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
+      { id: "sites", label: "Sites", icon: MapPin },
+      { id: "zones", label: "Zones", icon: Layers },
+      { id: "batiments", label: "Bâtiments", icon: Building2 },
+      { id: "salles", label: "Salles", icon: DoorOpen },
+      { id: "armoires", label: "Armoires", icon: Server },
+      { id: "equipements", label: "Équipements", icon: HardDrive },
+      { id: "ports", label: "Ports", icon: Router },
+      { id: "liaisons", label: "Liaisons", icon: Cable },
+    ],
+  },
+  {
+    label: "Maintenances",
+    items: [
+      { id: "maintenance", label: "Interventions", icon: Wrench },
+    ],
+  },
+  {
+    label: "Réseau",
+    items: [
+      { id: "vlans", label: "VLANs", icon: Network },
+      { id: "cartographie", label: "Cartographie LAN", icon: Map },
+    ],
+  },
+  {
+    label: "Administration",
+    roles: ["administrator"],
+    items: [
+      { id: "users", label: "Utilisateurs", icon: Users },
+    ],
+  },
+  {
+    label: "Compte",
+    items: [
+      { id: "notifications", label: "Notifications", icon: Bell },
+      { id: "profil", label: "Mon profil", icon: User },
+      { id: "parametres", label: "Paramètres", icon: Settings },
+    ],
+  },
 ];
 
 const themeOptions = [
@@ -50,6 +101,8 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
   const { user, logout } = useAuth();
   const { canManageUsers } = useRole();
   const { theme, setTheme } = useTheme();
+
+  const userRole = user?.role || '';
 
   return (
     <div className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -80,34 +133,49 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 overflow-y-auto">
-        <p className="text-[10px] font-semibold text-sidebar-foreground uppercase tracking-[0.15em] px-3 pb-2">
-          Navigation
-        </p>
-        <div className="space-y-0.5">
-          {menuItems.filter((item) => item.id !== 'users' || canManageUsers).map((item) => {
-            const isActive = activeSection === item.id;
-            return (
-              <Button
-                key={item.id}
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start text-sm h-9 px-3 font-medium transition-all duration-200",
-                  isActive
-                    ? "bg-sidebar-primary/10 text-sidebar-primary border-l-2 border-sidebar-primary rounded-l-none"
-                    : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent border-l-2 border-transparent"
-                )}
-                onClick={() => onSectionChange(item.id)}
-              >
-                <item.icon className={cn(
-                  "mr-3 h-4 w-4 flex-shrink-0",
-                  isActive ? "text-sidebar-primary" : ""
-                )} />
-                {item.label}
-              </Button>
-            );
-          })}
-        </div>
+      <nav className="flex-1 px-3 overflow-y-auto space-y-4">
+        {menuGroups
+          .filter((group) => {
+            if (group.roles && !group.roles.includes(userRole)) return false;
+            return true;
+          })
+          .map((group) => (
+            <div key={group.label}>
+              <p className="text-[10px] font-semibold text-sidebar-foreground uppercase tracking-[0.15em] px-3 pb-2">
+                {group.label}
+              </p>
+              <div className="space-y-0.5">
+                {group.items
+                  .filter((item) => {
+                    if (item.roles && !item.roles.includes(userRole)) return false;
+                    if (item.id === 'users' && !canManageUsers) return false;
+                    return true;
+                  })
+                  .map((item) => {
+                    const isActive = activeSection === item.id;
+                    return (
+                      <Button
+                        key={item.id}
+                        variant="ghost"
+                        className={cn(
+                          "w-full justify-start text-sm h-9 px-3 font-medium transition-all duration-200",
+                          isActive
+                            ? "bg-sidebar-primary/10 text-sidebar-primary border-l-2 border-sidebar-primary rounded-l-none"
+                            : "text-sidebar-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent border-l-2 border-transparent"
+                        )}
+                        onClick={() => onSectionChange(item.id)}
+                      >
+                        <item.icon className={cn(
+                          "mr-3 h-4 w-4 flex-shrink-0",
+                          isActive ? "text-sidebar-primary" : ""
+                        )} />
+                        {item.label}
+                      </Button>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
       </nav>
 
       {/* Footer */}

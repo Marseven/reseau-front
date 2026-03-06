@@ -8,3 +8,7 @@ export * from './useMetrics';
 export * from './useSystems';
 export * from './useUsers';
 export * from './useStats';
+export * from './useBatiments';
+export * from './useSalles';
+export * from './useVlans';
+export * from './useMaintenances';

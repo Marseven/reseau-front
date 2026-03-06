@@ -26,6 +26,7 @@ export interface Zone {
   created_at: string;
   updated_at: string;
   site?: Site;
+  batiments?: Batiment[];
   coffrets?: Coffret[];
 }
 
@@ -39,9 +40,11 @@ export interface Coffret {
   lat: number | null;
   status: string;
   zone_id: number | null;
+  salle_id: number | null;
   created_at: string;
   updated_at: string;
   zone?: Zone;
+  salle?: Salle;
   equipments?: Equipement[];
   metrics?: Metric[];
 }
@@ -144,6 +147,80 @@ export interface User {
   two_factor_enabled: boolean;
   created_at: string;
   updated_at: string;
+  site?: Site;
+}
+
+export interface Batiment {
+  id: number;
+  code: string;
+  name: string;
+  zone_id: number;
+  address: string | null;
+  floors_count: number | null;
+  longitude: number | null;
+  latitude: number | null;
+  status: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  zone?: Zone;
+  salles?: Salle[];
+}
+
+export interface Salle {
+  id: number;
+  code: string;
+  name: string;
+  batiment_id: number;
+  floor: string | null;
+  type: string | null;
+  status: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  batiment?: Batiment;
+  coffrets?: Coffret[];
+}
+
+export interface Vlan {
+  id: number;
+  vlan_id: number;
+  name: string;
+  description: string | null;
+  site_id: number | null;
+  network: string | null;
+  gateway: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  site?: Site;
+}
+
+export interface Maintenance {
+  id: number;
+  code: string;
+  title: string;
+  description: string | null;
+  type: string;
+  priority: string;
+  status: string;
+  equipement_id: number | null;
+  coffret_id: number | null;
+  site_id: number | null;
+  technicien_id: number;
+  validator_id: number | null;
+  scheduled_date: string;
+  scheduled_time: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  duration_minutes: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  technicien?: User;
+  validator?: User;
+  equipement?: Equipement;
+  coffret?: Coffret;
   site?: Site;
 }
 

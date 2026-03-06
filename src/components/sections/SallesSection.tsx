@@ -6,23 +6,23 @@ import QueryWrapper from "@/components/ui/query-wrapper";
 import DetailsModal from "@/components/ui/details-modal";
 import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
-import AddMaintenanceForm from "@/components/forms/AddMaintenanceForm";
-import { useMaintenances, useUpdateMaintenance, useDeleteMaintenance } from "@/hooks/api";
+import AddSalleForm from "@/components/forms/AddSalleForm";
+import { useSalles, useUpdateSalle, useDeleteSalle } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
-export default function MaintenanceSection() {
+export default function SallesSection() {
   const [params, setParams] = useState({ per_page: 50 });
-  const { data: paginatedMaintenances, isLoading, isError, error } = useMaintenances(params);
-  const updateMaintenance = useUpdateMaintenance();
-  const deleteMaintenance = useDeleteMaintenance();
+  const { data: paginatedSalles, isLoading, isError, error } = useSalles(params);
+  const updateSalle = useUpdateSalle();
+  const deleteSalle = useDeleteSalle();
   const { canWrite } = useRole();
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const maintenances = paginatedMaintenances?.data || [];
+  const salles = paginatedSalles?.data || [];
 
   const handleRowClick = (item: any) => {
     setSelectedItem(item);
@@ -35,9 +35,9 @@ export default function MaintenanceSection() {
   };
 
   const handleSave = (updatedItem: any) => {
-    updateMaintenance.mutate(updatedItem, {
+    updateSalle.mutate(updatedItem, {
       onSuccess: () => {
-        toast({ title: "Maintenance mise à jour", description: "La maintenance a été mise à jour avec succès" });
+        toast({ title: "Salle mise à jour", description: "La salle a été mise à jour avec succès" });
         setIsEditOpen(false);
       },
       onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
@@ -51,9 +51,9 @@ export default function MaintenanceSection() {
 
   const handleDeleteConfirm = () => {
     if (!selectedItem) return;
-    deleteMaintenance.mutate(selectedItem.id, {
+    deleteSalle.mutate(selectedItem.id, {
       onSuccess: () => {
-        toast({ title: "Maintenance supprimée", description: "La maintenance a été supprimée avec succès" });
+        toast({ title: "Salle supprimée", description: "La salle a été supprimée avec succès" });
         setIsDeleteOpen(false);
         setSelectedItem(null);
       },
@@ -61,44 +61,35 @@ export default function MaintenanceSection() {
     });
   };
 
-  const priorityLabels: Record<string, string> = {
-    basse: "Basse",
-    moyenne: "Moyenne",
-    haute: "Haute",
-    critique: "Critique",
+  const typeLabels: Record<string, string> = {
+    salle_serveur: "Salle Serveur",
+    bureau: "Bureau",
+    technique: "Technique",
+    stockage: "Stockage",
   };
 
-  const statusLabels: Record<string, string> = {
-    planifiee: "Planifiée",
-    en_cours: "En cours",
-    terminee: "Terminée",
-    annulee: "Annulée",
-  };
-
-  const tableData = maintenances.map((m: any) => ({
-    ...m,
-    technicien_name: m.technicien ? `${m.technicien.name} ${m.technicien.surname || ''}`.trim() : '-',
-    site_name: m.site?.name || '-',
-    priority_label: priorityLabels[m.priority] || m.priority,
-    status_label: statusLabels[m.status] || m.status,
+  const tableData = salles.map((s: any) => ({
+    ...s,
+    batiment_name: s.batiment?.name || '-',
+    type_label: s.type ? (typeLabels[s.type] || s.type) : '-',
   }));
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestion de la Maintenance</h2>
+          <h2 className="text-2xl font-bold text-foreground">Gestion des Salles</h2>
           <div className="text-sm text-muted-foreground mt-1">
-            Planification et suivi des interventions techniques
+            Salles au sein des bâtiments
           </div>
         </div>
-        {canWrite && <AddMaintenanceForm />}
+        {canWrite && <AddSalleForm />}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
         <DataTableEnhanced
-          title={`${maintenances.length} maintenances`}
-          columns={["code", "title", "type", "priority_label", "scheduled_date", "technicien_name", "site_name", "status_label"]}
+          title={`${salles.length} salles`}
+          columns={["code", "name", "batiment_name", "floor", "type_label", "status"]}
           data={tableData}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
@@ -118,7 +109,7 @@ export default function MaintenanceSection() {
       <DetailsModal
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
-        title="Détails de la maintenance"
+        title="Détails de la salle"
         data={selectedItem}
         onEdit={() => { setIsDetailsOpen(false); setIsEditOpen(true); }}
       />
@@ -126,7 +117,7 @@ export default function MaintenanceSection() {
       <EditModal
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
-        title="Modifier la maintenance"
+        title="Modifier la salle"
         data={selectedItem}
         onSave={handleSave}
       />
@@ -134,10 +125,10 @@ export default function MaintenanceSection() {
       <DeleteConfirmDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
-        title="Supprimer la maintenance"
-        description={`Êtes-vous sûr de vouloir supprimer la maintenance "${selectedItem?.title}" ? Cette action est irréversible.`}
+        title="Supprimer la salle"
+        description={`Êtes-vous sûr de vouloir supprimer la salle "${selectedItem?.name}" ? Cette action est irréversible.`}
         onConfirm={handleDeleteConfirm}
-        isLoading={deleteMaintenance.isPending}
+        isLoading={deleteSalle.isPending}
       />
     </div>
   );

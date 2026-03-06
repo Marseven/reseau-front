@@ -15,6 +15,12 @@ import ParametresSection from "@/components/sections/ParametresSection";
 import UsersSection from "@/components/sections/UsersSection";
 import SitesSection from "@/components/sections/SitesSection";
 import ZonesSection from "@/components/sections/ZonesSection";
+import BatimentsSection from "@/components/sections/BatimentsSection";
+import SallesSection from "@/components/sections/SallesSection";
+import VlansSection from "@/components/sections/VlansSection";
+import CartographieSection from "@/components/sections/CartographieSection";
+import NotificationsSection from "@/components/sections/NotificationsSection";
+import ProfileSection from "@/components/sections/ProfileSection";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -37,6 +43,10 @@ const Index = () => {
         return <SitesSection />;
       case "zones":
         return <ZonesSection />;
+      case "batiments":
+        return <BatimentsSection />;
+      case "salles":
+        return <SallesSection />;
       case "armoires":
         return <ArmoiresSection />;
       case "equipements":
@@ -51,6 +61,14 @@ const Index = () => {
         return <ParametresSection />;
       case "users":
         return <UsersSection />;
+      case "vlans":
+        return <VlansSection />;
+      case "cartographie":
+        return <CartographieSection />;
+      case "notifications":
+        return <NotificationsSection />;
+      case "profil":
+        return <ProfileSection />;
       default:
         return <DashboardOverview />;
     }

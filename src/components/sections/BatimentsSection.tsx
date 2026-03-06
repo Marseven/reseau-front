@@ -6,23 +6,23 @@ import QueryWrapper from "@/components/ui/query-wrapper";
 import DetailsModal from "@/components/ui/details-modal";
 import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
-import AddMaintenanceForm from "@/components/forms/AddMaintenanceForm";
-import { useMaintenances, useUpdateMaintenance, useDeleteMaintenance } from "@/hooks/api";
+import AddBatimentForm from "@/components/forms/AddBatimentForm";
+import { useBatiments, useUpdateBatiment, useDeleteBatiment } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
-export default function MaintenanceSection() {
+export default function BatimentsSection() {
   const [params, setParams] = useState({ per_page: 50 });
-  const { data: paginatedMaintenances, isLoading, isError, error } = useMaintenances(params);
-  const updateMaintenance = useUpdateMaintenance();
-  const deleteMaintenance = useDeleteMaintenance();
+  const { data: paginatedBatiments, isLoading, isError, error } = useBatiments(params);
+  const updateBatiment = useUpdateBatiment();
+  const deleteBatiment = useDeleteBatiment();
   const { canWrite } = useRole();
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
-  const maintenances = paginatedMaintenances?.data || [];
+  const batiments = paginatedBatiments?.data || [];
 
   const handleRowClick = (item: any) => {
     setSelectedItem(item);
@@ -35,9 +35,9 @@ export default function MaintenanceSection() {
   };
 
   const handleSave = (updatedItem: any) => {
-    updateMaintenance.mutate(updatedItem, {
+    updateBatiment.mutate(updatedItem, {
       onSuccess: () => {
-        toast({ title: "Maintenance mise à jour", description: "La maintenance a été mise à jour avec succès" });
+        toast({ title: "Bâtiment mis à jour", description: "Le bâtiment a été mis à jour avec succès" });
         setIsEditOpen(false);
       },
       onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
@@ -51,9 +51,9 @@ export default function MaintenanceSection() {
 
   const handleDeleteConfirm = () => {
     if (!selectedItem) return;
-    deleteMaintenance.mutate(selectedItem.id, {
+    deleteBatiment.mutate(selectedItem.id, {
       onSuccess: () => {
-        toast({ title: "Maintenance supprimée", description: "La maintenance a été supprimée avec succès" });
+        toast({ title: "Bâtiment supprimé", description: "Le bâtiment a été supprimé avec succès" });
         setIsDeleteOpen(false);
         setSelectedItem(null);
       },
@@ -61,44 +61,27 @@ export default function MaintenanceSection() {
     });
   };
 
-  const priorityLabels: Record<string, string> = {
-    basse: "Basse",
-    moyenne: "Moyenne",
-    haute: "Haute",
-    critique: "Critique",
-  };
-
-  const statusLabels: Record<string, string> = {
-    planifiee: "Planifiée",
-    en_cours: "En cours",
-    terminee: "Terminée",
-    annulee: "Annulée",
-  };
-
-  const tableData = maintenances.map((m: any) => ({
-    ...m,
-    technicien_name: m.technicien ? `${m.technicien.name} ${m.technicien.surname || ''}`.trim() : '-',
-    site_name: m.site?.name || '-',
-    priority_label: priorityLabels[m.priority] || m.priority,
-    status_label: statusLabels[m.status] || m.status,
+  const tableData = batiments.map((b: any) => ({
+    ...b,
+    zone_name: b.zone?.name || '-',
   }));
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestion de la Maintenance</h2>
+          <h2 className="text-2xl font-bold text-foreground">Gestion des Bâtiments</h2>
           <div className="text-sm text-muted-foreground mt-1">
-            Planification et suivi des interventions techniques
+            Bâtiments au sein des zones
           </div>
         </div>
-        {canWrite && <AddMaintenanceForm />}
+        {canWrite && <AddBatimentForm />}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
         <DataTableEnhanced
-          title={`${maintenances.length} maintenances`}
-          columns={["code", "title", "type", "priority_label", "scheduled_date", "technicien_name", "site_name", "status_label"]}
+          title={`${batiments.length} bâtiments`}
+          columns={["code", "name", "zone_name", "address", "floors_count", "status"]}
           data={tableData}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
@@ -118,7 +101,7 @@ export default function MaintenanceSection() {
       <DetailsModal
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
-        title="Détails de la maintenance"
+        title="Détails du bâtiment"
         data={selectedItem}
         onEdit={() => { setIsDetailsOpen(false); setIsEditOpen(true); }}
       />
@@ -126,7 +109,7 @@ export default function MaintenanceSection() {
       <EditModal
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
-        title="Modifier la maintenance"
+        title="Modifier le bâtiment"
         data={selectedItem}
         onSave={handleSave}
       />
@@ -134,10 +117,10 @@ export default function MaintenanceSection() {
       <DeleteConfirmDialog
         open={isDeleteOpen}
         onOpenChange={setIsDeleteOpen}
-        title="Supprimer la maintenance"
-        description={`Êtes-vous sûr de vouloir supprimer la maintenance "${selectedItem?.title}" ? Cette action est irréversible.`}
+        title="Supprimer le bâtiment"
+        description={`Êtes-vous sûr de vouloir supprimer le bâtiment "${selectedItem?.name}" ? Cette action est irréversible.`}
         onConfirm={handleDeleteConfirm}
-        isLoading={deleteMaintenance.isPending}
+        isLoading={deleteBatiment.isPending}
       />
     </div>
   );
