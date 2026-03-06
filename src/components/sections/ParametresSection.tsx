@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -5,11 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Save, User, Bell, Shield, Database, Palette, Globe } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import TwoFactorSetupDialog from "@/components/two-factor/TwoFactorSetupDialog";
+import TwoFactorDisableDialog from "@/components/two-factor/TwoFactorDisableDialog";
 
 export default function ParametresSection() {
+  const { user, refreshUser } = useAuth();
+  const [showSetupDialog, setShowSetupDialog] = useState(false);
+  const [showDisableDialog, setShowDisableDialog] = useState(false);
+
+  const handleTwoFactorToggle = () => {
+    if (user?.two_factor_enabled) {
+      setShowDisableDialog(true);
+    } else {
+      setShowSetupDialog(true);
+    }
+  };
+
+  const handleTwoFactorComplete = () => {
+    refreshUser();
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -210,9 +228,14 @@ export default function ParametresSection() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="font-medium text-foreground">Authentification à deux facteurs</div>
-                    <div className="text-sm text-muted-foreground">Sécurité renforcée</div>
+                    <div className="text-sm text-muted-foreground">
+                      {user?.two_factor_enabled ? "Activée — Google Authenticator" : "Sécurité renforcée"}
+                    </div>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={user?.two_factor_enabled ?? false}
+                    onCheckedChange={handleTwoFactorToggle}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="session-timeout">Timeout de session (minutes)</Label>
@@ -376,6 +399,17 @@ export default function ParametresSection() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <TwoFactorSetupDialog
+        open={showSetupDialog}
+        onOpenChange={setShowSetupDialog}
+        onComplete={handleTwoFactorComplete}
+      />
+      <TwoFactorDisableDialog
+        open={showDisableDialog}
+        onOpenChange={setShowDisableDialog}
+        onComplete={handleTwoFactorComplete}
+      />
     </div>
   );
 }

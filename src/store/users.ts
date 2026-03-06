@@ -8,7 +8,8 @@ export type user = {
     email: string,
     full_name: string,
     role: string,
-    is_active: number
+    is_active: number,
+    two_factor_enabled: boolean
 }
 
 // Define a type for the slice state

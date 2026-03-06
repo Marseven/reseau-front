@@ -4,8 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from "@/components/ui/input-otp";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, ArrowRight, Lock, Mail } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Lock, Mail, ShieldCheck, KeyRound } from "lucide-react";
 
 /* ── Animated network topology background ── */
 interface Node {
@@ -126,7 +132,15 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const { login } = useAuth();
+
+  // 2FA state
+  const [twoFactorStep, setTwoFactorStep] = useState(false);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState("");
+
+  const { login, verifyTwoFactor } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -138,8 +152,16 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+
+      if ("requires2fa" in result && result.requires2fa) {
+        setTwoFactorToken(result.twoFactorToken);
+        setTwoFactorStep(true);
+        setIsLoading(false);
+        return;
+      }
+
+      if ("success" in result && result.success) {
         toast({
           title: "Connexion réussie",
           description: "Bienvenue dans le système de gestion réseau",
@@ -161,6 +183,48 @@ const Login = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTwoFactorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const code = recoveryMode ? recoveryCode : otpCode;
+      const success = await verifyTwoFactor(twoFactorToken, code, recoveryMode);
+
+      if (success) {
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue dans le système de gestion réseau",
+        });
+        navigate("/");
+      } else {
+        toast({
+          title: "Code invalide",
+          description: recoveryMode
+            ? "Le code de récupération est invalide"
+            : "Le code OTP est invalide",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la vérification",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setTwoFactorStep(false);
+    setTwoFactorToken("");
+    setOtpCode("");
+    setRecoveryCode("");
+    setRecoveryMode(false);
   };
 
   return (
@@ -275,74 +339,180 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Form header */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground tracking-tight">
-              Connexion
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              Accédez au système de gestion réseau
-            </p>
-          </div>
-
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-foreground">
-                Adresse email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="administrateur@eramet-comilog.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors"
-                />
+          {!twoFactorStep ? (
+            <>
+              {/* Form header */}
+              <div className="mb-8">
+                <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                  Connexion
+                </h2>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Accédez au système de gestion réseau
+                </p>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-foreground">
-                Mot de passe
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors"
-                />
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-foreground">
+                    Adresse email
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="administrateur@eramet-comilog.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-sm font-medium text-foreground">
+                    Mot de passe
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)] font-semibold hover:from-[hsl(36,90%,55%)] hover:to-[hsl(28,85%,47%)] transition-all duration-300 shadow-lg shadow-[hsl(36,90%,50%)]/10 hover:shadow-[hsl(36,90%,50%)]/20 group"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      Se connecter
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              {/* Bottom link */}
+              <p className="mt-8 text-center text-xs text-muted-foreground">
+                Contactez l'administrateur pour obtenir vos identifiants
+              </p>
+            </>
+          ) : (
+            <>
+              {/* 2FA verification step */}
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-2">
+                  <ShieldCheck className="h-6 w-6 text-[hsl(36,90%,55%)]" />
+                  <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                    Vérification 2FA
+                  </h2>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {recoveryMode
+                    ? "Entrez l'un de vos codes de récupération"
+                    : "Entrez le code à 6 chiffres de votre application d'authentification"}
+                </p>
               </div>
-            </div>
 
-            <Button
-              type="submit"
-              className="w-full h-11 bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)] font-semibold hover:from-[hsl(36,90%,55%)] hover:to-[hsl(28,85%,47%)] transition-all duration-300 shadow-lg shadow-[hsl(36,90%,50%)]/10 hover:shadow-[hsl(36,90%,50%)]/20 group"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <>
-                  Se connecter
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                </>
-              )}
-            </Button>
-          </form>
+              <form onSubmit={handleTwoFactorSubmit} className="space-y-6">
+                {recoveryMode ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="recovery-code" className="text-sm font-medium text-foreground">
+                      Code de récupération
+                    </Label>
+                    <div className="relative">
+                      <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="recovery-code"
+                        type="text"
+                        placeholder="XXXX-XXXX"
+                        value={recoveryCode}
+                        onChange={(e) => setRecoveryCode(e.target.value)}
+                        required
+                        autoFocus
+                        className="pl-10 h-11 bg-card border-border focus:border-[hsl(36,90%,50%)] focus:ring-[hsl(36,90%,50%)]/20 transition-colors font-mono tracking-wider"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-4">
+                    <InputOTP
+                      maxLength={6}
+                      value={otpCode}
+                      onChange={(value) => setOtpCode(value)}
+                      autoFocus
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                      </InputOTPGroup>
+                      <InputOTPSeparator />
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                )}
 
-          {/* Bottom link */}
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            Contactez l'administrateur pour obtenir vos identifiants
-          </p>
+                <Button
+                  type="submit"
+                  className="w-full h-11 bg-gradient-to-r from-[hsl(36,90%,50%)] to-[hsl(28,85%,42%)] text-[hsl(224,50%,5%)] font-semibold hover:from-[hsl(36,90%,55%)] hover:to-[hsl(28,85%,47%)] transition-all duration-300 shadow-lg shadow-[hsl(36,90%,50%)]/10 hover:shadow-[hsl(36,90%,50%)]/20 group"
+                  disabled={isLoading || (!recoveryMode && otpCode.length < 6) || (recoveryMode && !recoveryCode)}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      Vérifier
+                      <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </Button>
+
+                <div className="flex items-center justify-between">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBackToLogin}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <ArrowLeft className="h-4 w-4 mr-1" />
+                    Retour
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setRecoveryMode(!recoveryMode);
+                      setOtpCode("");
+                      setRecoveryCode("");
+                    }}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    {recoveryMode ? "Utiliser le code OTP" : "Utiliser un code de récupération"}
+                  </Button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </div>

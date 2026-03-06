@@ -8,11 +8,19 @@ interface User {
   email: string;
   name: string;
   role: string;
+  two_factor_enabled: boolean;
 }
+
+type LoginResult =
+  | { success: true }
+  | { requires2fa: true; twoFactorToken: string }
+  | { success: false };
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<LoginResult>;
+  verifyTwoFactor: (token: string, code: string, isRecovery?: boolean) => Promise<boolean>;
+  refreshUser: () => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -33,9 +41,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [dispatch]);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<LoginResult> => {
     try {
       const response = await api.post('/auth/login', { username, password });
+
+      if (response.data.status === 200 && response.data.data?.requires_2fa) {
+        return {
+          requires2fa: true,
+          twoFactorToken: response.data.data.two_factor_token,
+        };
+      }
+
+      if (response.data.status === 200 && response.data.data?.token) {
+        const userData = response.data.data.user;
+        const token = response.data.data.token;
+
+        setUser(userData);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('authToken', token);
+        dispatch(loginAction({ user: userData, token }));
+        return { success: true };
+      }
+
+      return { success: false };
+    } catch {
+      return { success: false };
+    }
+  };
+
+  const verifyTwoFactor = async (
+    twoFactorToken: string,
+    code: string,
+    isRecovery = false
+  ): Promise<boolean> => {
+    try {
+      const payload: Record<string, string> = { two_factor_token: twoFactorToken };
+      if (isRecovery) {
+        payload.recovery_code = code;
+      } else {
+        payload.code = code;
+      }
+
+      const response = await api.post('/auth/2fa/challenge', payload);
 
       if (response.data.status === 200 && response.data.data?.token) {
         const userData = response.data.data.user;
@@ -51,6 +98,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return false;
     } catch {
       return false;
+    }
+  };
+
+  const refreshUser = async () => {
+    try {
+      const response = await api.get('/auth/me');
+      if (response.data.status === 200 && response.data.data) {
+        const userData = response.data.data;
+        setUser(userData);
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+      }
+    } catch {
+      // Silently fail
     }
   };
 
@@ -70,7 +130,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = !!user;
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, verifyTwoFactor, refreshUser, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
