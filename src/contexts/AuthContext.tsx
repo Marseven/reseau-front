@@ -18,7 +18,7 @@ type LoginResult =
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string) => Promise<LoginResult>;
+  login: (email: string, password: string) => Promise<LoginResult>;
   verifyTwoFactor: (token: string, code: string, isRecovery?: boolean) => Promise<boolean>;
   refreshUser: () => Promise<void>;
   logout: () => void;
@@ -41,9 +41,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [dispatch]);
 
-  const login = async (username: string, password: string): Promise<LoginResult> => {
+  const login = async (email: string, password: string): Promise<LoginResult> => {
     try {
-      const response = await api.post('/auth/login', { username, password });
+      const response = await api.post('/auth/login', { email, password });
 
       if (response.data.status === 200 && response.data.data?.requires_2fa) {
         return {
