@@ -89,6 +89,13 @@ info "Configuration .htaccess..."
 cat > "$PUBLIC_HTML/.htaccess" << 'HTACCESS'
 # ── ReseauApp SPA - Apache Configuration ──
 
+# ── MIME Types ──
+AddType application/javascript .js .mjs
+AddType text/css .css
+AddType application/json .json
+AddType application/wasm .wasm
+AddType image/svg+xml .svg
+
 # Activer le moteur de réécriture
 RewriteEngine On
 
@@ -141,7 +148,7 @@ RewriteRule ^ /index.html [L]
 </IfModule>
 
 # Bloquer l'accès aux fichiers sensibles
-<FilesMatch "\.(env|git|gitignore|md|sh|lock|json)$">
+<FilesMatch "\.(env|git|gitignore|md|sh|lock)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
