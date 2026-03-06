@@ -61,16 +61,17 @@ else
     log "Dépôt cloné"
 fi
 
-# ── Étape 3 : Vérifier le build ──
-if [ ! -d "$REPO_DIR/dist" ]; then
-    error "Dossier dist/ introuvable. Le build doit être commité dans le repo."
-fi
+# ── Étape 3 : Installer les dépendances et builder ──
+info "Installation des dépendances..."
+npm install --production=false --silent 2>&1 | tail -1
+log "Dépendances installées"
 
+info "Build de l'application..."
+npm run build 2>&1 | tail -3
 if [ ! -f "$REPO_DIR/dist/index.html" ]; then
-    error "dist/index.html introuvable. Build invalide."
+    error "Build échoué : dist/index.html introuvable."
 fi
-
-log "Build trouvé dans dist/"
+log "Build terminé"
 
 # ── Étape 4 : Déployer ──
 info "Déploiement vers public_html..."
