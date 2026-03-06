@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import Sidebar from "@/components/layout/Sidebar";
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
@@ -14,8 +13,8 @@ import PortsSection from "@/components/sections/PortsSection";
 import MaintenanceSection from "@/components/sections/MaintenanceSection";
 import ParametresSection from "@/components/sections/ParametresSection";
 import UsersSection from "@/components/sections/UsersSection";
-
-const queryClient = new QueryClient();
+import SitesSection from "@/components/sections/SitesSection";
+import ZonesSection from "@/components/sections/ZonesSection";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -29,11 +28,15 @@ const Index = () => {
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
-    return null; // or loading spinner
+    return null;
   }
 
   const renderContent = () => {
     switch (activeSection) {
+      case "sites":
+        return <SitesSection />;
+      case "zones":
+        return <ZonesSection />;
       case "armoires":
         return <ArmoiresSection />;
       case "equipements":
@@ -54,23 +57,21 @@ const Index = () => {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <div className="flex h-screen bg-background">
-          <Sidebar 
-            activeSection={activeSection} 
-            onSectionChange={setActiveSection} 
-          />
-          <main className="flex-1 overflow-auto">
-            <div className="p-8">
-              {renderContent()}
-            </div>
-          </main>
-        </div>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <div className="flex h-screen bg-background">
+        <Sidebar
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+        <main className="flex-1 overflow-auto">
+          <div className="p-8">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
+    </TooltipProvider>
   );
 };
 

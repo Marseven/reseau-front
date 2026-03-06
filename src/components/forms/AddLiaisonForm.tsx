@@ -7,55 +7,51 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useData } from "@/contexts/DataContext";
+import { useCreateLiaison } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
 const liaisonSchema = z.object({
-  nom: z.string().min(1, "Le nom est requis"),
-  type: z.string().min(1, "Le type est requis"),
-  origine: z.string().min(1, "L'origine est requise"),
-  destination: z.string().min(1, "La destination est requise"),
-  etat: z.string().min(1, "L'état est requis"),
-  bande: z.string().min(1, "La bande passante est requise"),
-  latence: z.string().min(1, "La latence est requise")
+  label: z.string().min(1, "Le label est requis"),
+  media: z.string().min(1, "Le média est requis"),
+  from: z.string().min(1, "L'origine est requise"),
+  to: z.string().min(1, "La destination est requise"),
+  length: z.string().optional(),
+  status: z.boolean().default(true),
+  status_label: z.string().default("active"),
 });
 
 type LiaisonFormData = z.infer<typeof liaisonSchema>;
 
 const AddLiaisonForm = () => {
   const [open, setOpen] = useState(false);
-  const { addLiaison } = useData();
+  const createLiaison = useCreateLiaison();
 
   const form = useForm<LiaisonFormData>({
     resolver: zodResolver(liaisonSchema),
     defaultValues: {
-      nom: "",
-      type: "",
-      origine: "",
-      destination: "",
-      etat: "Actif",
-      bande: "",
-      latence: ""
+      label: "",
+      media: "",
+      from: "",
+      to: "",
+      length: "",
+      status: true,
+      status_label: "active",
     }
   });
 
   const onSubmit = (data: LiaisonFormData) => {
-    addLiaison({
-      nom: data.nom!,
-      type: data.type!,
-      origine: data.origine!,
-      destination: data.destination!,
-      etat: data.etat!,
-      bande: data.bande!,
-      latence: data.latence!
+    const payload: any = { ...data };
+    if (payload.length) payload.length = Number(payload.length);
+
+    createLiaison.mutate(payload, {
+      onSuccess: () => {
+        toast({ title: "Liaison ajoutée", description: `La liaison ${data.label} a été ajoutée avec succès` });
+        form.reset();
+        setOpen(false);
+      },
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
     });
-    toast({
-      title: "Liaison ajoutée",
-      description: `La liaison ${data.nom} a été ajoutée avec succès`,
-    });
-    form.reset();
-    setOpen(false);
   };
 
   return (
@@ -66,151 +62,80 @@ const AddLiaisonForm = () => {
           Ajouter une liaison
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Ajouter une nouvelle liaison</DialogTitle>
-          <DialogDescription>
-            Remplissez les informations de la nouvelle liaison réseau.
-          </DialogDescription>
+          <DialogDescription>Remplissez les informations de la nouvelle liaison réseau.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="nom"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom</FormLabel>
-                  <FormControl>
-                    <Input placeholder="LIA-003" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Fibre optique">Fibre optique</SelectItem>
-                        <SelectItem value="MPLS">MPLS</SelectItem>
-                        <SelectItem value="VPN">VPN</SelectItem>
-                        <SelectItem value="Ethernet">Ethernet</SelectItem>
-                        <SelectItem value="Satellite">Satellite</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="label" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Label</FormLabel>
+                <FormControl><Input placeholder="LNK-003" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
-            <FormField
-              control={form.control}
-              name="origine"
-              render={({ field }) => (
+            <FormField control={form.control} name="media" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Média</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="Cuivre">Cuivre</SelectItem>
+                    <SelectItem value="Fibre">Fibre optique</SelectItem>
+                    <SelectItem value="Sans-fil">Sans-fil</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="from" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Origine</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Site D" {...field} />
-                  </FormControl>
+                  <FormControl><Input placeholder="Switch Core" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="destination"
-              render={({ field }) => (
+              )} />
+              <FormField control={form.control} name="to" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Destination</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Site E" {...field} />
-                  </FormControl>
+                  <FormControl><Input placeholder="Switch Edge" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="etat"
-              render={({ field }) => (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="length" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>État</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner l'état" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Actif">Actif</SelectItem>
-                        <SelectItem value="Inactif">Inactif</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                        <SelectItem value="Erreur">Erreur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                  <FormLabel>Longueur (m)</FormLabel>
+                  <FormControl><Input type="number" placeholder="12" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="bande"
-              render={({ field }) => (
+              )} />
+              <FormField control={form.control} name="status_label" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bande passante</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner la bande passante" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="10 Mbps">10 Mbps</SelectItem>
-                        <SelectItem value="50 Mbps">50 Mbps</SelectItem>
-                        <SelectItem value="100 Mbps">100 Mbps</SelectItem>
-                        <SelectItem value="500 Mbps">500 Mbps</SelectItem>
-                        <SelectItem value="1 Gbps">1 Gbps</SelectItem>
-                        <SelectItem value="10 Gbps">10 Gbps</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                  <FormLabel>Statut</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Actif</SelectItem>
+                      <SelectItem value="inactive">Inactif</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="latence"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Latence</FormLabel>
-                  <FormControl>
-                    <Input placeholder="8ms" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              )} />
+            </div>
 
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Annuler
-              </Button>
-              <Button type="submit">Ajouter</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="submit" disabled={createLiaison.isPending}>Ajouter</Button>
             </div>
           </form>
         </Form>

@@ -8,56 +8,52 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateCoffret, useZones } from "@/hooks/api";
+import { useCreateZone, useSites } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
-const armoireSchema = z.object({
+const zoneSchema = z.object({
   code: z.string().min(1, "Le code est requis"),
   name: z.string().min(1, "Le nom est requis"),
-  piece: z.string().optional(),
-  type: z.string().optional(),
-  zone_id: z.string().optional(),
+  floor: z.string().optional(),
+  building: z.string().optional(),
+  site_id: z.string().min(1, "Le site est requis"),
   status: z.string().min(1, "Le statut est requis"),
-  long: z.string().optional(),
-  lat: z.string().optional(),
+  description: z.string().optional(),
 });
 
-type ArmoireFormData = z.infer<typeof armoireSchema>;
+type ZoneFormData = z.infer<typeof zoneSchema>;
 
-const AddArmoireForm = () => {
+export default function AddZoneForm() {
   const [open, setOpen] = useState(false);
-  const createCoffret = useCreateCoffret();
-  const { data: paginatedZones } = useZones({ per_page: 100 });
-  const zones = paginatedZones?.data || [];
+  const createZone = useCreateZone();
+  const { data: paginatedSites } = useSites({ per_page: 100 });
+  const sites = paginatedSites?.data || [];
 
-  const form = useForm<ArmoireFormData>({
-    resolver: zodResolver(armoireSchema),
+  const form = useForm<ZoneFormData>({
+    resolver: zodResolver(zoneSchema),
     defaultValues: {
       code: "",
       name: "",
-      piece: "",
-      type: "",
-      zone_id: "",
+      floor: "",
+      building: "",
+      site_id: "",
       status: "active",
-      long: "",
-      lat: "",
+      description: "",
     }
   });
 
-  const onSubmit = (data: ArmoireFormData) => {
+  const onSubmit = (data: ZoneFormData) => {
     const payload: any = { ...data };
-    if (payload.zone_id) payload.zone_id = Number(payload.zone_id);
-    if (payload.long) payload.long = Number(payload.long);
-    if (payload.lat) payload.lat = Number(payload.lat);
+    payload.site_id = Number(payload.site_id);
 
-    createCoffret.mutate(payload, {
+    createZone.mutate(payload, {
       onSuccess: () => {
-        toast({ title: "Baie ajoutée", description: `La baie ${data.name} a été ajoutée avec succès` });
+        toast({ title: "Zone ajoutée", description: `La zone ${data.name} a été ajoutée avec succès` });
         form.reset();
         setOpen(false);
       },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout de la zone", variant: "destructive" }),
     });
   };
 
@@ -66,15 +62,13 @@ const AddArmoireForm = () => {
       <DialogTrigger asChild>
         <Button>
           <Plus className="mr-2 h-4 w-4" />
-          Ajouter une baie
+          Ajouter une zone
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter une nouvelle baie</DialogTitle>
-          <DialogDescription>
-            Remplissez les informations de la nouvelle baie réseau.
-          </DialogDescription>
+          <DialogTitle>Ajouter une nouvelle zone</DialogTitle>
+          <DialogDescription>Remplissez les informations de la nouvelle zone.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -82,57 +76,44 @@ const AddArmoireForm = () => {
               <FormField control={form.control} name="code" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Code</FormLabel>
-                  <FormControl><Input placeholder="CAB-003" {...field} /></FormControl>
+                  <FormControl><Input placeholder="ZONE-001" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nom</FormLabel>
-                  <FormControl><Input placeholder="Baie Serveur C" {...field} /></FormControl>
+                  <FormControl><Input placeholder="Salle Serveur" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="piece" render={({ field }) => (
+              <FormField control={form.control} name="floor" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Pièce</FormLabel>
-                  <FormControl><Input placeholder="R-201" {...field} /></FormControl>
+                  <FormLabel>Étage</FormLabel>
+                  <FormControl><Input placeholder="RDC" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="type" render={({ field }) => (
+              <FormField control={form.control} name="building" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="42U">42U</SelectItem>
-                      <SelectItem value="24U">24U</SelectItem>
-                      <SelectItem value="12U">12U</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Bâtiment</FormLabel>
+                  <FormControl><Input placeholder="Bâtiment A" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
             </div>
 
-            <FormField control={form.control} name="zone_id" render={({ field }) => (
+            <FormField control={form.control} name="site_id" render={({ field }) => (
               <FormItem>
-                <FormLabel>Zone</FormLabel>
+                <FormLabel>Site</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner la zone" /></SelectTrigger>
-                  </FormControl>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner le site" /></SelectTrigger></FormControl>
                   <SelectContent>
-                    {zones.map((zone: any) => (
-                      <SelectItem key={zone.id} value={String(zone.id)}>
-                        {zone.name} ({zone.site?.name || '-'})
-                      </SelectItem>
+                    {sites.map((site: any) => (
+                      <SelectItem key={site.id} value={String(site.id)}>{site.name} ({site.code})</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -144,9 +125,7 @@ const AddArmoireForm = () => {
               <FormItem>
                 <FormLabel>Statut</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger>
-                  </FormControl>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="active">Actif</SelectItem>
                     <SelectItem value="inactive">Inactif</SelectItem>
@@ -157,15 +136,21 @@ const AddArmoireForm = () => {
               </FormItem>
             )} />
 
+            <FormField control={form.control} name="description" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl><Textarea placeholder="Description de la zone..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createCoffret.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={createZone.isPending}>Ajouter</Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-};
-
-export default AddArmoireForm;
+}

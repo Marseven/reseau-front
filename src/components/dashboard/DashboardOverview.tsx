@@ -1,32 +1,12 @@
 import { Server, Router, Cable, Activity, Clock } from "lucide-react";
 import StatsCard from "./StatsCard";
 import DataTable from "./DataTable";
-
-const armoiresData = [
-  { ID: "CAB-001", Emplacement: "Salle R-201 12", Équipements: "", État: "Actif" },
-  { ID: "CAB-014", Emplacement: "Niveau -1 9", Équipements: "Local Tech", État: "Maintenance" },
-  { ID: "CAB-022", Emplacement: "Bâtiment B 15", Équipements: "- 3e étage", État: "Actif" },
-];
-
-const monitoringData = [
-  { Horodatage: "10:24", Événement: "Perte de liaison détectée sur LNK-02", Source: "Cabinet CAB-001", Gravité: "warn" },
-  { Horodatage: "10:02", Événement: "Port P24 repassé UP", Source: "Switch Edge (CAB-001)", Gravité: "ok" },
-  { Horodatage: "09:47", Événement: "Nouvel équipement découvert (EQ-2033)", Source: "Découverte", Gravité: "ok" },
-];
-
-const liaisonsData = [
-  { Label: "LNK-145", Média: "Fibre", "Longueur (m)": "120" },
-  { Label: "LNK-087", Média: "Cuivre", "Longueur (m)": "98" },
-  { Label: "LNK-022", Média: "Fibre", "Longueur (m)": "90" },
-];
-
-const activiteData = [
-  { Heure: "10:30", Action: "Modification dupont", Utilisateur: "" },
-  { Heure: "09:58", Action: "Ajout de liaison LNK-203", Utilisateur: "mnguyen" },
-  { Heure: "09:12", Action: "Import d'inventaire", Utilisateur: "asoumare" },
-];
+import QueryWrapper from "../ui/query-wrapper";
+import { useGlobalStats } from "@/hooks/api";
 
 export default function DashboardOverview() {
+  const { data: stats, isLoading, isError, error } = useGlobalStats();
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -49,40 +29,14 @@ export default function DashboardOverview() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Armoires" value="36" icon={Server} />
-        <StatsCard title="Équipements" value="248" icon={Router} />
-        <StatsCard title="Ports" value="5 920" icon={Cable} />
-        <StatsCard title="Liaisons actives" value="412" icon={Activity} />
-      </div>
-
-      {/* Data sections */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DataTable
-          title="Armoires – Aperçu rapide"
-          columns={["ID", "Emplacement", "Équipements", "État"]}
-          data={armoiresData}
-          onFilter={() => {}}
-        />
-        <DataTable
-          title="Monitoring – Derniers événements"
-          columns={["Horodatage", "Événement", "Source", "Gravité"]}
-          data={monitoringData}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <DataTable
-          title="Top liaisons par longueur"
-          columns={["Label", "Média", "Longueur (m)"]}
-          data={liaisonsData}
-        />
-        <DataTable
-          title="Activité récente"
-          columns={["Heure", "Action", "Utilisateur"]}
-          data={activiteData}
-        />
-      </div>
+      <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatsCard title="Sites" value={String(stats?.sites?.total ?? 0)} icon={Server} />
+          <StatsCard title="Équipements" value={String(stats?.equipements?.total ?? 0)} icon={Router} />
+          <StatsCard title="Ports" value={String(stats?.ports?.total ?? 0)} icon={Cable} />
+          <StatsCard title="Liaisons actives" value={String(stats?.liaisons?.total ?? 0)} icon={Activity} />
+        </div>
+      </QueryWrapper>
     </div>
   );
 }

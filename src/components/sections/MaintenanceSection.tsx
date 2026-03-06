@@ -3,10 +3,39 @@ import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import DetailsModal from "@/components/ui/details-modal";
 import EditModal from "@/components/ui/edit-modal";
 import AddMaintenanceForm from "@/components/forms/AddMaintenanceForm";
-import { useData } from "@/contexts/DataContext";
+
+// Maintenance uses local mock data until a backend endpoint is implemented
+const mockMaintenances = [
+  {
+    id: 'MAINT-001',
+    equipement: 'CAB-002',
+    type: 'preventive',
+    date: '2024-03-15',
+    heure: '14:00',
+    duree: '2h',
+    technicien: 'Jean Dupont',
+    priorite: 'moyenne',
+    description: 'Maintenance préventive standard',
+    statut: 'planifiee',
+    dateCreation: '2024-03-10'
+  },
+  {
+    id: 'MAINT-002',
+    equipement: 'LNK-001',
+    type: 'corrective',
+    date: '2024-03-11',
+    heure: '09:00',
+    duree: '4h',
+    technicien: 'Marie Martin',
+    priorite: 'haute',
+    description: 'Réparation liaison défaillante',
+    statut: 'en-cours',
+    dateCreation: '2024-03-08'
+  }
+];
 
 export default function MaintenanceSection() {
-  const { maintenances } = useData();
+  const [maintenances, setMaintenances] = useState(mockMaintenances);
   const [selectedMaintenance, setSelectedMaintenance] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -22,7 +51,11 @@ export default function MaintenanceSection() {
   };
 
   const handleSave = (updatedMaintenance: any) => {
-    console.log('Saving maintenance:', updatedMaintenance);
+    setMaintenances(prev => prev.map(m => m.id === updatedMaintenance.id ? updatedMaintenance : m));
+  };
+
+  const addMaintenance = (data: any) => {
+    setMaintenances(prev => [...prev, { ...data, id: `MAINT-${Date.now()}` }]);
   };
 
   return (
@@ -34,12 +67,12 @@ export default function MaintenanceSection() {
             Planification et suivi des interventions techniques
           </div>
         </div>
-        <AddMaintenanceForm />
+        <AddMaintenanceForm onAdd={addMaintenance} />
       </div>
 
       <DataTableEnhanced
         title={`${maintenances.length} maintenances programmées`}
-        columns={["titre", "type", "equipement", "date_debut", "date_fin", "statut", "technicien"]}
+        columns={["equipement", "type", "date", "heure", "technicien", "priorite", "statut"]}
         data={maintenances}
         onRowClick={handleRowClick}
         onEdit={handleEdit}

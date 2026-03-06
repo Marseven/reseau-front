@@ -13,10 +13,13 @@ import {
   Sun,
   Moon,
   Monitor,
+  MapPin,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/hooks/useRole";
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface SidebarProps {
@@ -26,7 +29,9 @@ interface SidebarProps {
 
 const menuItems = [
   { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard },
-  { id: "armoires", label: "Armoires", icon: Server },
+  { id: "sites", label: "Sites", icon: MapPin },
+  { id: "zones", label: "Zones", icon: Building2 },
+  { id: "armoires", label: "Baies", icon: Server },
   { id: "equipements", label: "Équipements", icon: HardDrive },
   { id: "liaisons", label: "Liaisons", icon: Cable },
   { id: "ports", label: "Ports", icon: Router },
@@ -43,6 +48,7 @@ const themeOptions = [
 
 export default function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
   const { user, logout } = useAuth();
+  const { canManageUsers } = useRole();
   const { theme, setTheme } = useTheme();
 
   return (
@@ -79,7 +85,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
           Navigation
         </p>
         <div className="space-y-0.5">
-          {menuItems.map((item) => {
+          {menuItems.filter((item) => item.id !== 'users' || canManageUsers).map((item) => {
             const isActive = activeSection === item.id;
             return (
               <Button

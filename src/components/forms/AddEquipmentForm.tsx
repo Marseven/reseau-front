@@ -8,18 +8,22 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { useData, Equipment } from "@/contexts/DataContext";
+import { useCreateEquipement, useCoffrets } from "@/hooks/api";
+import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
 const equipmentSchema = z.object({
-  nom: z.string().min(1, "Le nom est requis"),
+  equipement_code: z.string().min(1, "Le code est requis"),
+  name: z.string().min(1, "Le nom est requis"),
   type: z.string().min(1, "Le type est requis"),
-  modele: z.string().min(1, "Le modèle est requis"),
-  armoire: z.string().min(1, "L'armoire est requise"),
-  ip: z.string().min(1, "L'adresse IP est requise"),
-  etat: z.string().min(1, "L'état est requis"),
-  uptime: z.string().default("0j 0h"),
+  classification: z.string().min(1, "La classification est requise"),
+  modele: z.string().optional(),
+  fabricant: z.string().optional(),
+  serial_number: z.string().optional(),
+  coffret_id: z.string().optional(),
+  ip_address: z.string().optional(),
+  connection_type: z.string().optional(),
+  status: z.string().min(1, "Le statut est requis"),
   description: z.string().optional(),
 });
 
@@ -27,33 +31,41 @@ type EquipmentFormData = z.infer<typeof equipmentSchema>;
 
 export default function AddEquipmentForm() {
   const [open, setOpen] = useState(false);
-  const { toast } = useToast();
-  const { armoires, addEquipment } = useData();
+  const createEquipement = useCreateEquipement();
+  const { data: paginatedCoffrets } = useCoffrets({ per_page: 100 });
+  const coffrets = paginatedCoffrets?.data || [];
 
   const form = useForm<EquipmentFormData>({
     resolver: zodResolver(equipmentSchema),
     defaultValues: {
-      nom: "",
+      equipement_code: "",
+      name: "",
       type: "",
+      classification: "IT",
       modele: "",
-      armoire: "",
-      ip: "",
-      etat: "actif",
-      uptime: "0j 0h",
+      fabricant: "",
+      serial_number: "",
+      coffret_id: "",
+      ip_address: "",
+      connection_type: "",
+      status: "active",
       description: "",
     },
   });
 
   const onSubmit = (data: EquipmentFormData) => {
-    addEquipment(data as Omit<Equipment, 'id'>);
-    
-    toast({
-      title: "Équipement ajouté",
-      description: "L'équipement a été ajouté avec succès",
+    const payload: any = { ...data };
+    if (payload.coffret_id) payload.coffret_id = Number(payload.coffret_id);
+    else delete payload.coffret_id;
+
+    createEquipement.mutate(payload, {
+      onSuccess: () => {
+        toast({ title: "Équipement ajouté", description: "L'équipement a été ajouté avec succès" });
+        form.reset();
+        setOpen(false);
+      },
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
     });
-    
-    form.reset();
-    setOpen(false);
   };
 
   return (
@@ -71,147 +83,147 @@ export default function AddEquipmentForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="nom"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nom</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Switch-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner le type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="switch">Switch</SelectItem>
-                        <SelectItem value="routeur">Routeur</SelectItem>
-                        <SelectItem value="firewall">Firewall</SelectItem>
-                        <SelectItem value="point-acces">Point d'accès</SelectItem>
-                        <SelectItem value="serveur">Serveur</SelectItem>
-                        <SelectItem value="autre">Autre</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="modele"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Modèle</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Cisco C9300-24P" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="armoire"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Armoire</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner l'armoire" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {armoires.map((armoire) => (
-                          <SelectItem key={armoire.id} value={armoire.nom}>
-                            {armoire.nom}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="ip"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Adresse IP</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: 192.168.1.10" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="etat"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>État</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner l'état" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="actif">Actif</SelectItem>
-                        <SelectItem value="inactif">Inactif</SelectItem>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                        <SelectItem value="erreur">Erreur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
+              <FormField control={form.control} name="equipement_code" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (optionnel)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Description de l'équipement..."
-                      {...field}
-                    />
-                  </FormControl>
+                  <FormLabel>Code</FormLabel>
+                  <FormControl><Input placeholder="EQ-001" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+              <FormField control={form.control} name="name" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom</FormLabel>
+                  <FormControl><Input placeholder="Switch Core" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="type" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="switch">Switch</SelectItem>
+                      <SelectItem value="router">Routeur</SelectItem>
+                      <SelectItem value="firewall">Firewall</SelectItem>
+                      <SelectItem value="ap">Point d'accès</SelectItem>
+                      <SelectItem value="server">Serveur</SelectItem>
+                      <SelectItem value="other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="classification" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Classification</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Classification" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="IT">IT</SelectItem>
+                      <SelectItem value="OT">OT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="modele" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Modèle</FormLabel>
+                  <FormControl><Input placeholder="Cisco C9300" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="fabricant" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fabricant</FormLabel>
+                  <FormControl><Input placeholder="Cisco" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="serial_number" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>N° Série</FormLabel>
+                  <FormControl><Input placeholder="SN123456" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="coffret_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Baie</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {coffrets.map((c: any) => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.name} ({c.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="ip_address" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Adresse IP</FormLabel>
+                  <FormControl><Input placeholder="192.168.1.10" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="connection_type" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type connexion</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="RJ45">RJ45</SelectItem>
+                      <SelectItem value="Fibre">Fibre</SelectItem>
+                      <SelectItem value="SFP">SFP</SelectItem>
+                      <SelectItem value="SFP+">SFP+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
+            <FormField control={form.control} name="status" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    <SelectItem value="active">Actif</SelectItem>
+                    <SelectItem value="inactive">Inactif</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )} />
+
+            <FormField control={form.control} name="description" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl><Textarea placeholder="Description..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Annuler
-              </Button>
-              <Button type="submit">Ajouter</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="submit" disabled={createEquipement.isPending}>Ajouter</Button>
             </div>
           </form>
         </Form>

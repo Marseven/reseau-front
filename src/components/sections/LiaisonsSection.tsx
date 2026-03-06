@@ -1,19 +1,28 @@
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
+import QueryWrapper from "@/components/ui/query-wrapper";
 import DetailsModal from "@/components/ui/details-modal";
 import EditModal from "@/components/ui/edit-modal";
+import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddLiaisonForm from "@/components/forms/AddLiaisonForm";
-import { useData } from "@/contexts/DataContext";
+import { useLiaisons, useUpdateLiaison, useDeleteLiaison } from "@/hooks/api";
+import { useRole } from "@/hooks/useRole";
+import { toast } from "@/hooks/use-toast";
 
 export default function LiaisonsSection() {
-  const { liaisons } = useData();
+  const [params] = useState({ per_page: 50 });
+  const { data: paginatedLiaisons, isLoading, isError, error } = useLiaisons(params);
+  const updateLiaison = useUpdateLiaison();
+  const deleteLiaison = useDeleteLiaison();
+  const { canWrite } = useRole();
   const [selectedLiaison, setSelectedLiaison] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const liaisons = paginatedLiaisons?.data || [];
 
   const handleRowClick = (liaison: any) => {
     setSelectedLiaison(liaison);
@@ -26,7 +35,30 @@ export default function LiaisonsSection() {
   };
 
   const handleSave = (updatedLiaison: any) => {
-    console.log('Saving liaison:', updatedLiaison);
+    updateLiaison.mutate(updatedLiaison, {
+      onSuccess: () => {
+        toast({ title: "Liaison mise à jour", description: "La liaison a été mise à jour avec succès" });
+        setIsEditOpen(false);
+      },
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+    });
+  };
+
+  const handleDeleteClick = (item: any) => {
+    setSelectedLiaison(item);
+    setIsDeleteOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!selectedLiaison) return;
+    deleteLiaison.mutate(selectedLiaison.id, {
+      onSuccess: () => {
+        toast({ title: "Liaison supprimée", description: "La liaison a été supprimée avec succès" });
+        setIsDeleteOpen(false);
+        setSelectedLiaison(null);
+      },
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de la suppression", variant: "destructive" }),
+    });
   };
 
   return (
@@ -38,16 +70,28 @@ export default function LiaisonsSection() {
             Configuration et monitoring des connexions réseau
           </div>
         </div>
-        <AddLiaisonForm />
+        {canWrite && <AddLiaisonForm />}
       </div>
 
-      <DataTableEnhanced
-        title={`${liaisons.length} liaisons configurées`}
-        columns={["nom", "type", "origine", "destination", "etat", "bande", "latence"]}
-        data={liaisons}
-        onRowClick={handleRowClick}
-        onEdit={handleEdit}
-      />
+      <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
+        <DataTableEnhanced
+          title={`${liaisons.length} liaisons configurées`}
+          columns={["label", "media", "from", "to", "status_label", "length"]}
+          data={liaisons}
+          onRowClick={handleRowClick}
+          onEdit={canWrite ? handleEdit : undefined}
+          renderRowActions={canWrite ? (row: any) => (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          ) : undefined}
+        />
+      </QueryWrapper>
 
       <DetailsModal
         open={isDetailsOpen}
@@ -66,6 +110,15 @@ export default function LiaisonsSection() {
         title="Modifier la liaison"
         data={selectedLiaison}
         onSave={handleSave}
+      />
+
+      <DeleteConfirmDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        title="Supprimer la liaison"
+        description={`Êtes-vous sûr de vouloir supprimer la liaison "${selectedLiaison?.label}" ? Cette action est irréversible.`}
+        onConfirm={handleDeleteConfirm}
+        isLoading={deleteLiaison.isPending}
       />
     </div>
   );

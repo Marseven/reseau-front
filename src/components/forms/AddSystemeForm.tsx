@@ -4,58 +4,52 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useData } from "@/contexts/DataContext";
+import { useCreateSystem } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
 const systemeSchema = z.object({
-  nom: z.string().min(1, "Le nom est requis"),
+  name: z.string().min(1, "Le nom est requis"),
   type: z.string().min(1, "Le type est requis"),
-  version: z.string().min(1, "La version est requise"),
-  etat: z.string().min(1, "L'état est requis"),
-  cpu: z.string().min(1, "Le CPU est requis"),
-  memoire: z.string().min(1, "La mémoire est requise"),
-  stockage: z.string().min(1, "Le stockage est requis")
+  vendor: z.string().optional(),
+  endpoint: z.string().optional(),
+  monitored_scope: z.string().optional(),
+  status: z.string().min(1, "Le statut est requis"),
+  description: z.string().optional(),
 });
 
 type SystemeFormData = z.infer<typeof systemeSchema>;
 
 const AddSystemeForm = () => {
   const [open, setOpen] = useState(false);
-  const { addSysteme } = useData();
+  const createSystem = useCreateSystem();
 
   const form = useForm<SystemeFormData>({
     resolver: zodResolver(systemeSchema),
     defaultValues: {
-      nom: "",
+      name: "",
       type: "",
-      version: "",
-      etat: "En ligne",
-      cpu: "",
-      memoire: "",
-      stockage: ""
+      vendor: "",
+      endpoint: "",
+      monitored_scope: "",
+      status: "active",
+      description: "",
     }
   });
 
   const onSubmit = (data: SystemeFormData) => {
-    addSysteme({
-      nom: data.nom!,
-      type: data.type!,
-      version: data.version!,
-      etat: data.etat!,
-      cpu: data.cpu!,
-      memoire: data.memoire!,
-      stockage: data.stockage!
+    createSystem.mutate(data, {
+      onSuccess: () => {
+        toast({ title: "Système ajouté", description: `Le système ${data.name} a été ajouté avec succès` });
+        form.reset();
+        setOpen(false);
+      },
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
     });
-    toast({
-      title: "Système ajouté",
-      description: `Le système ${data.nom} a été ajouté avec succès`,
-    });
-    form.reset();
-    setOpen(false);
   };
 
   return (
@@ -66,141 +60,91 @@ const AddSystemeForm = () => {
           Ajouter un système
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Ajouter un nouveau système</DialogTitle>
-          <DialogDescription>
-            Remplissez les informations du nouveau système.
-          </DialogDescription>
+          <DialogDescription>Remplissez les informations du nouveau système.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="nom"
-              render={({ field }) => (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nom</FormLabel>
-                  <FormControl>
-                    <Input placeholder="SRV-003" {...field} />
-                  </FormControl>
+                  <FormControl><Input placeholder="LibreNMS" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
+              )} />
+              <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner le type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Serveur Web">Serveur Web</SelectItem>
-                        <SelectItem value="Base de données">Base de données</SelectItem>
-                        <SelectItem value="Serveur applicatif">Serveur applicatif</SelectItem>
-                        <SelectItem value="Serveur de fichiers">Serveur de fichiers</SelectItem>
-                        <SelectItem value="Proxy">Proxy</SelectItem>
-                        <SelectItem value="Firewall">Firewall</SelectItem>
-                        <SelectItem value="Load Balancer">Load Balancer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="NMS">NMS</SelectItem>
+                      <SelectItem value="Camera">Caméra</SelectItem>
+                      <SelectItem value="IPAM">IPAM</SelectItem>
+                      <SelectItem value="Syslog">Syslog</SelectItem>
+                      <SelectItem value="Other">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="version"
-              render={({ field }) => (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="vendor" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Version</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ubuntu 22.04" {...field} />
-                  </FormControl>
+                  <FormLabel>Fournisseur</FormLabel>
+                  <FormControl><Input placeholder="Community" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+              <FormField control={form.control} name="endpoint" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endpoint</FormLabel>
+                  <FormControl><Input placeholder="nms.local/api" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="etat"
-              render={({ field }) => (
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="monitored_scope" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>État</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner l'état" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="En ligne">En ligne</SelectItem>
-                        <SelectItem value="Hors ligne">Hors ligne</SelectItem>
-                        <SelectItem value="Maintenance">Maintenance</SelectItem>
-                        <SelectItem value="Erreur">Erreur</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
+                  <FormLabel>Périmètre</FormLabel>
+                  <FormControl><Input placeholder="Cabinet" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
-              )}
-            />
+              )} />
+              <FormField control={form.control} name="status" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Statut</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      <SelectItem value="active">Actif</SelectItem>
+                      <SelectItem value="inactive">Inactif</SelectItem>
+                      <SelectItem value="maintenance">Maintenance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="cpu"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>CPU (%)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="25%" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="memoire"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Mémoire (%)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="60%" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="stockage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stockage (%)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="40%" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormField control={form.control} name="description" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl><Textarea placeholder="Description du système..." {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
 
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Annuler
-              </Button>
-              <Button type="submit">Ajouter</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
+              <Button type="submit" disabled={createSystem.isPending}>Ajouter</Button>
             </div>
           </form>
         </Form>
