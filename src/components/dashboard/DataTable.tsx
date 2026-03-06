@@ -48,6 +48,9 @@ const usePagination = (data: any[], initialItemsPerPage = 10) => {
   };
 };
 
+const formatColumnHeader = (col: string): string =>
+  col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ');
+
 export default function DataTable({ title, columns, data, onFilter, onExport }: DataTableProps) {
   const {
     currentPage,
@@ -119,8 +122,8 @@ export default function DataTable({ title, columns, data, onFilter, onExport }: 
           <TableHeader>
             <TableRow className="bg-[hsl(var(--table-header))] hover:bg-[hsl(var(--table-header))] border-b border-border">
               {columns.map((column) => (
-                <TableHead key={column} className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground h-9">
-                  {column}
+                <TableHead key={column} className="text-[10px] font-semibold capitalize tracking-wider text-muted-foreground h-9">
+                  {formatColumnHeader(column)}
                 </TableHead>
               ))}
             </TableRow>

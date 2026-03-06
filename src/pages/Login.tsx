@@ -383,7 +383,7 @@ const Login = () => {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-primary text-white font-semibold hover:bg-[hsl(232,33%,35%)] transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-primary/20 group"
+                  className="w-full h-11 bg-primary text-white font-semibold hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-primary/20 group"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -464,7 +464,7 @@ const Login = () => {
 
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-primary text-white font-semibold hover:bg-[hsl(232,33%,35%)] transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-primary/20 group"
+                  className="w-full h-11 bg-primary text-white font-semibold hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/10 hover:shadow-primary/20 group"
                   disabled={isLoading || (!recoveryMode && otpCode.length < 6) || (recoveryMode && !recoveryCode)}
                 >
                   {isLoading ? (

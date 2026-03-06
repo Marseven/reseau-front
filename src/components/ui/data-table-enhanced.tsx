@@ -67,10 +67,13 @@ const usePagination = (data: any[], initialItemsPerPage = 10) => {
   };
 };
 
-export default function DataTableEnhanced({ 
-  title, 
-  columns, 
-  data, 
+const formatColumnHeader = (col: string): string =>
+  col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ');
+
+export default function DataTableEnhanced({
+  title,
+  columns,
+  data,
   onRowClick,
   onEdit,
   renderRowActions,
@@ -227,7 +230,7 @@ export default function DataTableEnhanced({
                 <SelectContent>
                   {columns.map((column) => (
                     <SelectItem key={column} value={column}>
-                      {column}
+                      {formatColumnHeader(column)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -255,7 +258,7 @@ export default function DataTableEnhanced({
             <TableRow className="bg-table-header hover:bg-table-header">
               {columns.map((column) => (
                 <TableHead key={column} className="text-primary-foreground font-medium">
-                  {column}
+                  {formatColumnHeader(column)}
                 </TableHead>
               ))}
               {(onRowClick || onEdit || renderRowActions) && (
