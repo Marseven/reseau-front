@@ -251,7 +251,7 @@ const Login = () => {
             className={`transition-all duration-700 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
           >
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="Eramet Comilog" className="h-10 w-auto" />
+              <img src="/logo.png" alt="Eramet Comilog" className="h-10 w-auto brightness-0 invert" />
               <div>
                 <p className="text-sm font-semibold tracking-wider uppercase text-[hsl(229,40%,70%)]">
                   Eramet Comilog
@@ -304,7 +304,7 @@ const Login = () => {
           <p
             className={`text-xs text-[hsl(215,16%,35%)] transition-all duration-700 delay-700 ${mounted ? 'opacity-100' : 'opacity-0'}`}
           >
-            &copy; {new Date().getFullYear()} JOBS-Conseil &middot; Eramet Comilog
+            &copy; {new Date().getFullYear()} Eramet Comilog
           </p>
         </div>
       </div>
@@ -326,7 +326,7 @@ const Login = () => {
           {/* Mobile logo */}
           <div className="lg:hidden mb-10 text-center">
             <div className="inline-flex items-center gap-3">
-              <img src="/logo.png" alt="Eramet Comilog" className="h-10 w-auto" />
+              <img src="/logo.png" alt="Eramet Comilog" className="h-10 w-auto dark:brightness-0 dark:invert" />
               <span className="text-lg font-semibold text-foreground">ReseauApp</span>
             </div>
           </div>

@@ -50,7 +50,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
       {/* Header */}
       <div className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Eramet Comilog" className="h-9 w-auto flex-shrink-0" />
+          <img src="/logo.png" alt="Eramet Comilog" className="h-9 w-auto flex-shrink-0 brightness-0 invert" />
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-wide">
               ReseauApp
