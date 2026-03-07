@@ -9,6 +9,9 @@ import { queryClient } from "@/lib/queryClient";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import CoffretDetailPage from "./pages/CoffretDetailPage";
+import EquipementDetailPage from "./pages/EquipementDetailPage";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const App = () => (
   <ThemeProvider>
@@ -21,6 +24,8 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<Index />} />
+              <Route path="/baie/:token" element={<ProtectedRoute><CoffretDetailPage /></ProtectedRoute>} />
+              <Route path="/equipement/:token" element={<ProtectedRoute><EquipementDetailPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

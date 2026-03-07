@@ -12,3 +12,4 @@ export * from './useBatiments';
 export * from './useSalles';
 export * from './useVlans';
 export * from './useMaintenances';
+export * from './useQrCode';

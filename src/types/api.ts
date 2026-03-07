@@ -39,6 +39,7 @@ export interface Coffret {
   long: number | null;
   lat: number | null;
   status: string;
+  qr_token: string;
   zone_id: number | null;
   salle_id: number | null;
   created_at: string;
@@ -65,6 +66,7 @@ export interface Equipement {
   ip_address: string | null;
   coffret_id: number;
   status: string;
+  qr_token: string;
   created_at: string;
   updated_at: string;
   coffret?: Coffret;

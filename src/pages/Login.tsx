@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -142,6 +142,8 @@ const Login = () => {
 
   const { login, verifyTwoFactor } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get('redirect') || '/';
 
   useEffect(() => {
     setMounted(true);
@@ -166,7 +168,7 @@ const Login = () => {
           title: "Connexion réussie",
           description: "Bienvenue dans le système de gestion réseau",
         });
-        navigate("/");
+        navigate(redirectUrl);
       } else {
         toast({
           title: "Erreur de connexion",
@@ -198,7 +200,7 @@ const Login = () => {
           title: "Connexion réussie",
           description: "Bienvenue dans le système de gestion réseau",
         });
-        navigate("/");
+        navigate(redirectUrl);
       } else {
         toast({
           title: "Code invalide",

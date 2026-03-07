@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataTableEnhanced from "../ui/data-table-enhanced";
@@ -12,6 +12,7 @@ import AddPortForm from "../forms/AddPortForm";
 import AddLiaisonForm from "../forms/AddLiaisonForm";
 import AddSystemeForm from "../forms/AddSystemeForm";
 import AddArmoireForm from "../forms/AddArmoireForm";
+import QrCodeDialog from "../qrcode/QrCodeDialog";
 import {
   useCoffrets, useUpdateCoffret, useDeleteCoffret,
   useEquipements, useUpdateEquipement, useDeleteEquipement,
@@ -56,6 +57,7 @@ export default function ArmoiresSection() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("coffrets");
+  const [qrItem, setQrItem] = useState<any>(null);
 
   const handleRowClick = (item: any) => {
     setSelectedItem(item);
@@ -117,6 +119,54 @@ export default function ArmoiresSection() {
       onError: () => toast({ title: "Erreur", description: "Erreur lors de la suppression", variant: "destructive" }),
     });
   };
+
+  const coffretActions = (row: any) => (
+    <div className="flex items-center gap-1">
+      {row.qr_token && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); setQrItem({ ...row, _type: 'coffret' }); }}
+        >
+          <QrCode className="h-4 w-4" />
+        </Button>
+      )}
+      {canWrite && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+
+  const equipementActions = (row: any) => (
+    <div className="flex items-center gap-1">
+      {row.qr_token && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); setQrItem({ ...row, _type: 'equipement' }); }}
+        >
+          <QrCode className="h-4 w-4" />
+        </Button>
+      )}
+      {canWrite && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
 
   const deleteAction = canWrite ? (row: any) => (
     <Button
@@ -196,7 +246,7 @@ export default function ArmoiresSection() {
               data={coffretTableData}
               onRowClick={handleRowClick}
               onEdit={canWrite ? handleEdit : undefined}
-              renderRowActions={deleteAction}
+              renderRowActions={coffretActions}
             />
           </TabsContent>
 
@@ -211,7 +261,7 @@ export default function ArmoiresSection() {
               data={equipementTableData}
               onRowClick={handleRowClick}
               onEdit={canWrite ? handleEdit : undefined}
-              renderRowActions={deleteAction}
+              renderRowActions={equipementActions}
             />
           </TabsContent>
 
@@ -288,6 +338,14 @@ export default function ArmoiresSection() {
         description={`Êtes-vous sûr de vouloir supprimer "${selectedItem?.name || selectedItem?.label || selectedItem?.code}" ? Cette action est irréversible.`}
         onConfirm={handleDeleteConfirm}
         isLoading={currentDeleteMutation.isPending}
+      />
+
+      <QrCodeDialog
+        open={!!qrItem}
+        onOpenChange={(open) => { if (!open) setQrItem(null); }}
+        value={qrItem ? `${window.location.origin}/${qrItem._type === 'coffret' ? 'baie' : 'equipement'}/${qrItem.qr_token}` : ''}
+        title={qrItem?.name || ''}
+        subtitle={qrItem?.code || qrItem?.equipement_code || ''}
       />
     </div>
   );

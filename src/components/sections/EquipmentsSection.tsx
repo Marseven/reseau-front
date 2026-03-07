@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
@@ -7,6 +7,7 @@ import DetailsModal from "@/components/ui/details-modal";
 import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddEquipmentForm from "@/components/forms/AddEquipmentForm";
+import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
 import { useEquipements, useUpdateEquipement, useDeleteEquipement } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ export default function EquipmentsSection() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [qrItem, setQrItem] = useState<any>(null);
 
   const equipements = paginatedEquipements?.data || [];
 
@@ -85,16 +87,29 @@ export default function EquipmentsSection() {
           data={tableData}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
-          renderRowActions={canWrite ? (row: any) => (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          ) : undefined}
+          renderRowActions={(row: any) => (
+            <div className="flex items-center gap-1">
+              {row.qr_token && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); setQrItem(row); }}
+                >
+                  <QrCode className="h-4 w-4" />
+                </Button>
+              )}
+              {canWrite && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         />
       </QueryWrapper>
 
@@ -124,6 +139,14 @@ export default function EquipmentsSection() {
         description={`Êtes-vous sûr de vouloir supprimer l'équipement "${selectedEquipment?.name}" ? Cette action est irréversible.`}
         onConfirm={handleDeleteConfirm}
         isLoading={deleteEquipement.isPending}
+      />
+
+      <QrCodeDialog
+        open={!!qrItem}
+        onOpenChange={(open) => { if (!open) setQrItem(null); }}
+        value={qrItem ? `${window.location.origin}/equipement/${qrItem.qr_token}` : ''}
+        title={qrItem?.name || ''}
+        subtitle={qrItem?.equipement_code || ''}
       />
     </div>
   );
