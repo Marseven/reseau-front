@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, QrCode } from "lucide-react";
+import { Trash2, QrCode, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataTableEnhanced from "../ui/data-table-enhanced";
@@ -20,6 +20,7 @@ import {
   useLiaisons, useUpdateLiaison, useDeleteLiaison,
   useSystems, useUpdateSystem, useDeleteSystem,
   useMetrics,
+  useExportCoffretsCsv,
 } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
@@ -34,6 +35,7 @@ export default function ArmoiresSection() {
   const metricsQuery = useMetrics(params);
 
   const { canWrite } = useRole();
+  const exportCoffretsCsv = useExportCoffretsCsv();
   const updateCoffret = useUpdateCoffret();
   const updateEquipement = useUpdateEquipement();
   const updatePort = useUpdatePort();
@@ -213,7 +215,18 @@ export default function ArmoiresSection() {
             Coffrets, équipements, ports, liaisons et systèmes
           </div>
         </div>
-        {canWrite && <AddArmoireForm />}
+        <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button variant="outline" size="sm" disabled={exportCoffretsCsv.isPending} onClick={() => exportCoffretsCsv.mutate(undefined, {
+              onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
+              onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
+            })}>
+              {exportCoffretsCsv.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+              CSV
+            </Button>
+          )}
+          {canWrite && <AddArmoireForm />}
+        </div>
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

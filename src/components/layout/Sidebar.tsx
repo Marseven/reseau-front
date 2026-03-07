@@ -22,6 +22,7 @@ import {
   Bell,
   User,
   ClipboardEdit,
+  FileBarChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,13 @@ const menuGroups: MenuGroup[] = [
     items: [
       { id: "vlans", label: "VLANs", icon: Network },
       { id: "cartographie", label: "Cartographie LAN", icon: Map },
+    ],
+  },
+  {
+    label: "Analyse",
+    roles: ["administrator", "directeur"],
+    items: [
+      { id: "rapports", label: "Rapports & Exports", icon: FileBarChart },
     ],
   },
   {

@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, MapPin, Building2, Layers, DoorOpen, Server, Cpu, Loader2 } from "lucide-react";
+import { ChevronRight, ChevronDown, MapPin, Building2, Layers, DoorOpen, Server, Cpu, Loader2, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useSites, useZones, useBatiments, useSalles, useCoffrets, useEquipements } from "@/hooks/api";
+import { Button } from "@/components/ui/button";
+import { useSites, useZones, useBatiments, useSalles, useCoffrets, useEquipements, useExportArchitecturePdf } from "@/hooks/api";
+import { useRole } from "@/hooks/useRole";
+import { toast } from "@/hooks/use-toast";
 
 function StatusBadge({ status }: { status: string }) {
   const variant = status === "active" ? "default" : status === "maintenance" ? "secondary" : "outline";
@@ -54,6 +57,8 @@ function TreeNode({
 }
 
 export default function CartographieSection() {
+  const { canWrite } = useRole();
+  const exportPdf = useExportArchitecturePdf();
   const { data: paginatedSites, isLoading: loadingSites } = useSites({ per_page: 100 });
   const { data: paginatedZones, isLoading: loadingZones } = useZones({ per_page: 200 });
   const { data: paginatedBatiments, isLoading: loadingBatiments } = useBatiments({ per_page: 200 });
@@ -73,9 +78,11 @@ export default function CartographieSection() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
-          <div className="text-sm text-muted-foreground mt-1">Vue arborescente de l'infrastructure</div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
+            <div className="text-sm text-muted-foreground mt-1">Vue arborescente de l'infrastructure</div>
+          </div>
         </div>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -87,11 +94,22 @@ export default function CartographieSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
-        <div className="text-sm text-muted-foreground mt-1">
-          Vue arborescente de l'infrastructure : Site &rarr; Zone &rarr; Bâtiment &rarr; Salle &rarr; Armoire &rarr; Équipement
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
+          <div className="text-sm text-muted-foreground mt-1">
+            Vue arborescente de l'infrastructure : Site &rarr; Zone &rarr; Bâtiment &rarr; Salle &rarr; Armoire &rarr; Équipement
+          </div>
         </div>
+        {canWrite && (
+          <Button variant="outline" size="sm" disabled={exportPdf.isPending} onClick={() => exportPdf.mutate(undefined, {
+            onSuccess: () => toast({ title: "Export terminé", description: "Le PDF a été téléchargé" }),
+            onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
+          })}>
+            {exportPdf.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+            Exporter PDF
+          </Button>
+        )}
       </div>
 
       <div className="border rounded-lg p-4 bg-card">

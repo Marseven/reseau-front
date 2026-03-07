@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
@@ -7,7 +7,7 @@ import DetailsModal from "@/components/ui/details-modal";
 import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddLiaisonForm from "@/components/forms/AddLiaisonForm";
-import { useLiaisons, useUpdateLiaison, useDeleteLiaison } from "@/hooks/api";
+import { useLiaisons, useUpdateLiaison, useDeleteLiaison, useExportLiaisonsCsv } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
@@ -17,6 +17,7 @@ export default function LiaisonsSection() {
   const updateLiaison = useUpdateLiaison();
   const deleteLiaison = useDeleteLiaison();
   const { canWrite } = useRole();
+  const exportCsv = useExportLiaisonsCsv();
   const [selectedLiaison, setSelectedLiaison] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -70,7 +71,18 @@ export default function LiaisonsSection() {
             Configuration et monitoring des connexions réseau
           </div>
         </div>
-        {canWrite && <AddLiaisonForm />}
+        <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button variant="outline" size="sm" disabled={exportCsv.isPending} onClick={() => exportCsv.mutate(undefined, {
+              onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
+              onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
+            })}>
+              {exportCsv.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+              CSV
+            </Button>
+          )}
+          {canWrite && <AddLiaisonForm />}
+        </div>
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

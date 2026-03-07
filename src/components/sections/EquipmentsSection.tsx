@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, QrCode } from "lucide-react";
+import { Trash2, QrCode, Download, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
@@ -8,7 +8,7 @@ import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddEquipmentForm from "@/components/forms/AddEquipmentForm";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
-import { useEquipements, useUpdateEquipement, useDeleteEquipement } from "@/hooks/api";
+import { useEquipements, useUpdateEquipement, useDeleteEquipement, useExportEquipementsCsv } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
@@ -18,6 +18,7 @@ export default function EquipmentsSection() {
   const updateEquipement = useUpdateEquipement();
   const deleteEquipement = useDeleteEquipement();
   const { canWrite } = useRole();
+  const exportCsv = useExportEquipementsCsv();
   const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -77,7 +78,18 @@ export default function EquipmentsSection() {
             Gestion des équipements réseau et de leurs connexions
           </div>
         </div>
-        {canWrite && <AddEquipmentForm />}
+        <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button variant="outline" size="sm" disabled={exportCsv.isPending} onClick={() => exportCsv.mutate(undefined, {
+              onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
+              onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
+            })}>
+              {exportCsv.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+              CSV
+            </Button>
+          )}
+          {canWrite && <AddEquipmentForm />}
+        </div>
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

@@ -22,6 +22,7 @@ import CartographieSection from "@/components/sections/CartographieSection";
 import NotificationsSection from "@/components/sections/NotificationsSection";
 import ProfileSection from "@/components/sections/ProfileSection";
 import ChangeRequestsSection from "@/components/sections/ChangeRequestsSection";
+import RapportsSection from "@/components/sections/RapportsSection";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -70,6 +71,8 @@ const Index = () => {
         return <CartographieSection />;
       case "notifications":
         return <NotificationsSection />;
+      case "rapports":
+        return <RapportsSection />;
       case "profil":
         return <ProfileSection />;
       default:
