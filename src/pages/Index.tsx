@@ -21,6 +21,7 @@ import VlansSection from "@/components/sections/VlansSection";
 import CartographieSection from "@/components/sections/CartographieSection";
 import NotificationsSection from "@/components/sections/NotificationsSection";
 import ProfileSection from "@/components/sections/ProfileSection";
+import ChangeRequestsSection from "@/components/sections/ChangeRequestsSection";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -57,6 +58,8 @@ const Index = () => {
         return <PortsSection />;
       case "maintenance":
         return <MaintenanceSection />;
+      case "change-requests":
+        return <ChangeRequestsSection />;
       case "parametres":
         return <ParametresSection />;
       case "users":

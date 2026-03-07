@@ -226,6 +226,60 @@ export interface Maintenance {
   site?: Site;
 }
 
+export interface ChangeRequest {
+  id: number;
+  code: string;
+  coffret_id: number;
+  requester_id: number;
+  type: string;
+  description: string;
+  justification: string;
+  photo_before: string | null;
+  photo_after: string | null;
+  intervention_date: string;
+  status: string;
+  reviewer_id: number | null;
+  reviewed_at: string | null;
+  review_comment: string | null;
+  snapshot_before: Record<string, any>;
+  snapshot_after: Record<string, any> | null;
+  created_at: string;
+  updated_at: string;
+  coffret?: Coffret;
+  requester?: User;
+  reviewer?: User;
+}
+
+export interface AppNotification {
+  id: number;
+  user_id: number;
+  type: string;
+  title: string;
+  message: string;
+  data: Record<string, any> | null;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationsResponse {
+  notifications: PaginatedData<AppNotification>;
+  unread_count: number;
+}
+
+export interface ActivityLog {
+  id: number;
+  user_id: number;
+  action: string;
+  entity_type: string;
+  entity_id: number;
+  old_values: Record<string, any> | null;
+  new_values: Record<string, any> | null;
+  ip_address: string | null;
+  created_at: string;
+  user?: User;
+}
+
 export interface ApiResponse<T> {
   status: number;
   data: T;

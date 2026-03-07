@@ -1,18 +1,22 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, QrCode, MapPin, Calendar, Server } from "lucide-react";
+import { ArrowLeft, QrCode, MapPin, Calendar, Server, History } from "lucide-react";
 import { useCoffretByQrToken } from "@/hooks/api";
+import { useRole } from "@/hooks/useRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import ClassificationBadge from "@/components/ui/classification-badge";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
+import AddChangeRequestForm from "@/components/forms/AddChangeRequestForm";
+import CoffretHistoryTimeline from "@/components/history/CoffretHistoryTimeline";
 
 export default function CoffretDetailPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { data: coffret, isLoading, isError } = useCoffretByQrToken(token);
+  const { canPropose } = useRole();
   const [qrOpen, setQrOpen] = useState(false);
 
   if (isLoading) {
@@ -61,10 +65,15 @@ export default function CoffretDetailPage() {
               <p className="text-sm text-muted-foreground font-mono">{coffret.code}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={() => setQrOpen(true)} className="gap-2">
-            <QrCode className="h-4 w-4" />
-            QR Code
-          </Button>
+          <div className="flex gap-2">
+            {canPropose && (
+              <AddChangeRequestForm coffretId={coffret.id} coffretName={coffret.name} />
+            )}
+            <Button variant="outline" onClick={() => setQrOpen(true)} className="gap-2">
+              <QrCode className="h-4 w-4" />
+              QR Code
+            </Button>
+          </div>
         </div>
 
         {/* Info cards */}
@@ -191,6 +200,19 @@ export default function CoffretDetailPage() {
             ) : (
               <p className="text-muted-foreground text-sm">Aucun équipement dans cette baie.</p>
             )}
+          </CardContent>
+        </Card>
+
+        {/* History */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Historique des modifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CoffretHistoryTimeline coffretId={coffret.id} />
           </CardContent>
         </Card>
 

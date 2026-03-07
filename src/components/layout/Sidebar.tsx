@@ -21,12 +21,14 @@ import {
   Map,
   Bell,
   User,
+  ClipboardEdit,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useUnreadCount } from "@/hooks/api";
 
 interface SidebarProps {
   activeSection: string;
@@ -65,6 +67,7 @@ const menuGroups: MenuGroup[] = [
     label: "Maintenances",
     items: [
       { id: "maintenance", label: "Interventions", icon: Wrench },
+      { id: "change-requests", label: "Demandes", icon: ClipboardEdit },
     ],
   },
   {
@@ -101,6 +104,7 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
   const { user, logout } = useAuth();
   const { canManageUsers } = useRole();
   const { theme, setTheme } = useTheme();
+  const { data: unreadCount = 0 } = useUnreadCount();
 
   const userRole = user?.role || '';
 
@@ -170,6 +174,11 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
                           isActive ? "text-sidebar-primary" : ""
                         )} />
                         {item.label}
+                        {item.id === 'notifications' && unreadCount > 0 && (
+                          <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 min-w-[20px] flex items-center justify-center px-1">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </Button>
                     );
                   })}

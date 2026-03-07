@@ -9,5 +9,6 @@ export function useRole() {
     isDirecteur: role === 'directeur',
     canWrite: ['administrator', 'directeur'].includes(role),
     canManageUsers: role === 'administrator',
+    canPropose: ['administrator', 'directeur', 'technicien'].includes(role),
   };
 }

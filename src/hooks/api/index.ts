@@ -13,3 +13,6 @@ export * from './useSalles';
 export * from './useVlans';
 export * from './useMaintenances';
 export * from './useQrCode';
+export * from './useChangeRequests';
+export * from './useNotifications';
+export * from './useActivityLogs';
