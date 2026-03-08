@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { login as loginAction, logout as logoutAction } from '@/store/users';
 import type { RootState } from '@/store/store';
@@ -24,6 +24,7 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -33,15 +34,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const reduxUser = useSelector((state: RootState) => state.user.user);
   const reduxToken = useSelector((state: RootState) => state.user.token);
   const reduxIsLogin = useSelector((state: RootState) => state.user.isLogin);
+  const rehydrated = useSelector((state: any) => state._persist?.rehydrated ?? false);
 
-  // Local user state initialized from Redux (already restored by PersistGate)
-  const [user, setUser] = useState<User | null>(reduxUser as User | null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
 
-  // Sync: if Redux has user but local state doesn't (after PersistGate restore)
-  if (reduxIsLogin && reduxUser && !user) {
-    setUser(reduxUser as User);
-  }
+  // Sync user from Redux after rehydration completes
+  useEffect(() => {
+    if (!rehydrated) return;
+
+    if (reduxIsLogin && reduxUser) {
+      setUser(reduxUser as User);
+    }
+    setLoading(false);
+  }, [rehydrated, reduxIsLogin, reduxUser]);
 
   const login = async (email: string, password: string): Promise<LoginResult> => {
     try {
@@ -126,7 +133,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = !!(reduxIsLogin && reduxToken) || !!user;
 
   return (
-    <AuthContext.Provider value={{ user, login, verifyTwoFactor, refreshUser, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, verifyTwoFactor, refreshUser, logout, isAuthenticated, loading }}>
       {children}
     </AuthContext.Provider>
   );

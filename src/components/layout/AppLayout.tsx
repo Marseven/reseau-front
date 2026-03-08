@@ -20,12 +20,6 @@ export default function AppLayout() {
   const { requestPermission } = useNotificationPermission();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
     if (isAuthenticated) {
       requestPermission();
     }
