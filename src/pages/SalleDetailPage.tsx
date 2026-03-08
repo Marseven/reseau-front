@@ -30,7 +30,7 @@ export default function SalleDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-6 max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Skeleton className="h-48" />
@@ -43,7 +43,7 @@ export default function SalleDetailPage() {
 
   if (isError || !salle) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="flex flex-col items-center justify-center gap-4 py-20">
         <DoorOpen className="h-16 w-16 text-muted-foreground" />
         <h1 className="text-2xl font-bold text-foreground">Salle introuvable</h1>
         <Button variant="outline" onClick={() => navigate("/")}>
@@ -65,8 +65,7 @@ export default function SalleDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="max-w-5xl mx-auto space-y-6">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           {salle.batiment?.zone?.site && (
@@ -234,7 +233,6 @@ export default function SalleDetailPage() {
           onConfirm={handleDelete}
           isLoading={deleteSalle.isPending}
         />
-      </div>
     </div>
   );
 }

@@ -17,7 +17,7 @@ export default function EquipementDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-6 max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Skeleton className="h-48" />
@@ -30,7 +30,7 @@ export default function EquipementDetailPage() {
 
   if (isError || !equipement) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="flex flex-col items-center justify-center gap-4 py-20">
         <Cpu className="h-16 w-16 text-muted-foreground" />
         <h1 className="text-2xl font-bold text-foreground">Équipement introuvable</h1>
         <p className="text-muted-foreground">Le QR code scanné ne correspond à aucun équipement.</p>
@@ -45,174 +45,172 @@ export default function EquipementDetailPage() {
   const qrUrl = `${window.location.origin}/equipement/${equipement.qr_token}`;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">{equipement.name}</h1>
-                <ClassificationBadge classification={equipement.classification} />
-                <StatusBadge status={equipement.status as any} />
-              </div>
-              <p className="text-sm text-muted-foreground font-mono">{equipement.equipement_code}</p>
-            </div>
-          </div>
-          <Button variant="outline" onClick={() => setQrOpen(true)} className="gap-2">
-            <QrCode className="h-4 w-4" />
-            QR Code
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
           </Button>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-foreground">{equipement.name}</h1>
+              <ClassificationBadge classification={equipement.classification} />
+              <StatusBadge status={equipement.status as any} />
+            </div>
+            <p className="text-sm text-muted-foreground font-mono">{equipement.equipement_code}</p>
+          </div>
         </div>
+        <Button variant="outline" onClick={() => setQrOpen(true)} className="gap-2">
+          <QrCode className="h-4 w-4" />
+          QR Code
+        </Button>
+      </div>
 
-        {/* Info cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Caractéristiques</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Type</span>
-                <span className="font-medium">{equipement.type}</span>
-              </div>
-              {equipement.fabricant && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Fabricant</span>
-                  <span className="font-medium">{equipement.fabricant}</span>
-                </div>
-              )}
-              {equipement.modele && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Modèle</span>
-                  <span className="font-medium">{equipement.modele}</span>
-                </div>
-              )}
-              {equipement.serial_number && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">N° série</span>
-                  <span className="font-medium font-mono text-xs">{equipement.serial_number}</span>
-                </div>
-              )}
-              {equipement.connection_type && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Connexion</span>
-                  <span className="font-medium">{equipement.connection_type}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Réseau</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {equipement.ip_address && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Adresse IP</span>
-                  <span className="font-medium font-mono">{equipement.ip_address}</span>
-                </div>
-              )}
-              {equipement.vlan && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">VLAN</span>
-                  <span className="font-medium">{equipement.vlan}</span>
-                </div>
-              )}
-              {equipement.direction_in_out && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Direction</span>
-                  <span className="font-medium uppercase">{equipement.direction_in_out}</span>
-                </div>
-              )}
-              {equipement.coffret && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Baie</span>
-                  {equipement.coffret.qr_token ? (
-                    <Link
-                      to={`/baie/${equipement.coffret.qr_token}`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {equipement.coffret.name}
-                    </Link>
-                  ) : (
-                    <span className="font-medium">{equipement.coffret.name}</span>
-                  )}
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Créé le</span>
-                <span className="font-medium flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {new Date(equipement.created_at).toLocaleDateString("fr-FR")}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Ports table */}
+      {/* Info cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Network className="h-5 w-5" />
-              Ports ({equipement.ports?.length || 0})
-            </CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Caractéristiques</CardTitle>
           </CardHeader>
-          <CardContent>
-            {equipement.ports && equipement.ports.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 pr-4">Libellé</th>
-                      <th className="pb-2 pr-4">Type</th>
-                      <th className="pb-2 pr-4">Débit</th>
-                      <th className="pb-2 pr-4">VLAN</th>
-                      <th className="pb-2 pr-4">PoE</th>
-                      <th className="pb-2">Statut</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {equipement.ports.map((port) => (
-                      <tr key={port.id} className="border-b last:border-0">
-                        <td className="py-2 pr-4 font-medium">{port.port_label}</td>
-                        <td className="py-2 pr-4">{port.port_type || "—"}</td>
-                        <td className="py-2 pr-4">{port.speed || "—"}</td>
-                        <td className="py-2 pr-4">{port.vlan || "—"}</td>
-                        <td className="py-2 pr-4">
-                          {port.poe_enabled ? (
-                            <span className="text-green-600 dark:text-green-400 font-medium">Oui</span>
-                          ) : (
-                            <span className="text-muted-foreground">Non</span>
-                          )}
-                        </td>
-                        <td className="py-2">
-                          <StatusBadge status={port.status as any} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Type</span>
+              <span className="font-medium">{equipement.type}</span>
+            </div>
+            {equipement.fabricant && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Fabricant</span>
+                <span className="font-medium">{equipement.fabricant}</span>
               </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">Aucun port configuré.</p>
+            )}
+            {equipement.modele && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Modèle</span>
+                <span className="font-medium">{equipement.modele}</span>
+              </div>
+            )}
+            {equipement.serial_number && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">N° série</span>
+                <span className="font-medium font-mono text-xs">{equipement.serial_number}</span>
+              </div>
+            )}
+            {equipement.connection_type && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Connexion</span>
+                <span className="font-medium">{equipement.connection_type}</span>
+              </div>
             )}
           </CardContent>
         </Card>
 
-        <QrCodeDialog
-          open={qrOpen}
-          onOpenChange={setQrOpen}
-          value={qrUrl}
-          title={equipement.name}
-          subtitle={equipement.equipement_code}
-        />
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Réseau</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {equipement.ip_address && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Adresse IP</span>
+                <span className="font-medium font-mono">{equipement.ip_address}</span>
+              </div>
+            )}
+            {equipement.vlan && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">VLAN</span>
+                <span className="font-medium">{equipement.vlan}</span>
+              </div>
+            )}
+            {equipement.direction_in_out && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Direction</span>
+                <span className="font-medium uppercase">{equipement.direction_in_out}</span>
+              </div>
+            )}
+            {equipement.coffret && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Baie</span>
+                {equipement.coffret.qr_token ? (
+                  <Link
+                    to={`/baie/${equipement.coffret.qr_token}`}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {equipement.coffret.name}
+                  </Link>
+                ) : (
+                  <span className="font-medium">{equipement.coffret.name}</span>
+                )}
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Créé le</span>
+              <span className="font-medium flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {new Date(equipement.created_at).toLocaleDateString("fr-FR")}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Ports table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Network className="h-5 w-5" />
+            Ports ({equipement.ports?.length || 0})
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {equipement.ports && equipement.ports.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4">Libellé</th>
+                    <th className="pb-2 pr-4">Type</th>
+                    <th className="pb-2 pr-4">Débit</th>
+                    <th className="pb-2 pr-4">VLAN</th>
+                    <th className="pb-2 pr-4">PoE</th>
+                    <th className="pb-2">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {equipement.ports.map((port) => (
+                    <tr key={port.id} className="border-b last:border-0">
+                      <td className="py-2 pr-4 font-medium">{port.port_label}</td>
+                      <td className="py-2 pr-4">{port.port_type || "—"}</td>
+                      <td className="py-2 pr-4">{port.speed || "—"}</td>
+                      <td className="py-2 pr-4">{port.vlan || "—"}</td>
+                      <td className="py-2 pr-4">
+                        {port.poe_enabled ? (
+                          <span className="text-green-600 dark:text-green-400 font-medium">Oui</span>
+                        ) : (
+                          <span className="text-muted-foreground">Non</span>
+                        )}
+                      </td>
+                      <td className="py-2">
+                        <StatusBadge status={port.status as any} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">Aucun port configuré.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <QrCodeDialog
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        value={qrUrl}
+        title={equipement.name}
+        subtitle={equipement.equipement_code}
+      />
     </div>
   );
 }

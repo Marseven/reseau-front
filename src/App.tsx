@@ -7,12 +7,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { queryClient } from "@/lib/queryClient";
-import Index from "./pages/Index";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AppLayout from "./components/layout/AppLayout";
 import SectionSkeleton from "./components/ui/section-skeleton";
 
+const Index = lazy(() => import("./pages/Index"));
 const CoffretDetailPage = lazy(() => import("./pages/CoffretDetailPage"));
 const EquipementDetailPage = lazy(() => import("./pages/EquipementDetailPage"));
 const SiteDetailPage = lazy(() => import("./pages/SiteDetailPage"));
@@ -30,49 +31,43 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Index />} />
-              <Route path="/baie/:token" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+              <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+                <Route index element={
+                  <Suspense fallback={<SectionSkeleton />}>
+                    <Index />
+                  </Suspense>
+                } />
+                <Route path="/baie/:token" element={
+                  <Suspense fallback={<SectionSkeleton />}>
                     <CoffretDetailPage />
                   </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/equipement/:token" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                } />
+                <Route path="/equipement/:token" element={
+                  <Suspense fallback={<SectionSkeleton />}>
                     <EquipementDetailPage />
                   </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/sites/:id" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                } />
+                <Route path="/sites/:id" element={
+                  <Suspense fallback={<SectionSkeleton />}>
                     <SiteDetailPage />
                   </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/zones/:id" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                } />
+                <Route path="/zones/:id" element={
+                  <Suspense fallback={<SectionSkeleton />}>
                     <ZoneDetailPage />
                   </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/batiments/:id" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                } />
+                <Route path="/batiments/:id" element={
+                  <Suspense fallback={<SectionSkeleton />}>
                     <BatimentDetailPage />
                   </Suspense>
-                </ProtectedRoute>
-              } />
-              <Route path="/salles/:id" element={
-                <ProtectedRoute>
-                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                } />
+                <Route path="/salles/:id" element={
+                  <Suspense fallback={<SectionSkeleton />}>
                     <SalleDetailPage />
                   </Suspense>
-                </ProtectedRoute>
-              } />
+                } />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

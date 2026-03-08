@@ -24,7 +24,7 @@ export default function ZoneDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-6 max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <Skeleton className="h-10 w-64" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Skeleton className="h-48" />
@@ -37,7 +37,7 @@ export default function ZoneDetailPage() {
 
   if (isError || !zone) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <div className="flex flex-col items-center justify-center gap-4 py-20">
         <Building2 className="h-16 w-16 text-muted-foreground" />
         <h1 className="text-2xl font-bold text-foreground">Zone introuvable</h1>
         <Button variant="outline" onClick={() => navigate("/")}>
@@ -59,209 +59,207 @@ export default function ZoneDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-5xl mx-auto p-6 space-y-6">
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          {zone.site && (
-            <>
-              <Link to={`/sites/${zone.site.id}`} className="hover:text-foreground transition-colors">
-                {zone.site.name}
-              </Link>
-              <span>/</span>
-            </>
-          )}
-          <span className="text-foreground">{zone.name}</span>
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-foreground">{zone.name}</h1>
-                <StatusBadge status={zone.status as any} />
-              </div>
-              <p className="text-sm text-muted-foreground font-mono">{zone.code}</p>
-            </div>
-          </div>
-          {canWrite && (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setIsEditOpen(true)}>Modifier</Button>
-              <Button variant="outline" className="text-destructive" onClick={() => setIsDeleteOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-1" />
-                Supprimer
-              </Button>
-            </div>
-          )}
-        </div>
-
-        {/* Info cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Informations</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              {zone.floor && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Étage</span>
-                  <span className="font-medium">{zone.floor}</span>
-                </div>
-              )}
-              {zone.building && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bâtiment</span>
-                  <span className="font-medium">{zone.building}</span>
-                </div>
-              )}
-              {zone.description && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Description</span>
-                  <span className="font-medium">{zone.description}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Dates</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Créé le</span>
-                <span className="font-medium flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {new Date(zone.created_at).toLocaleDateString("fr-FR")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Modifié le</span>
-                <span className="font-medium">
-                  {new Date(zone.updated_at).toLocaleDateString("fr-FR")}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Batiments table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Bâtiments ({zone.batiments?.length || 0})
-              </span>
-              {canWrite && <AddBatimentForm />}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {zone.batiments && zone.batiments.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 pr-4">Code</th>
-                      <th className="pb-2 pr-4">Nom</th>
-                      <th className="pb-2 pr-4">Adresse</th>
-                      <th className="pb-2 pr-4">Étages</th>
-                      <th className="pb-2">Statut</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {zone.batiments.map((bat: any) => (
-                      <tr
-                        key={bat.id}
-                        className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
-                        onClick={() => navigate(`/batiments/${bat.id}`)}
-                      >
-                        <td className="py-2 pr-4 font-mono text-xs">{bat.code}</td>
-                        <td className="py-2 pr-4 font-medium">{bat.name}</td>
-                        <td className="py-2 pr-4">{bat.address || "—"}</td>
-                        <td className="py-2 pr-4">{bat.floors_count ?? "—"}</td>
-                        <td className="py-2">
-                          <StatusBadge status={bat.status as any} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">Aucun bâtiment dans cette zone.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Coffrets table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <Server className="h-5 w-5" />
-                Coffrets ({zone.coffrets?.length || 0})
-              </span>
-              {canWrite && <AddArmoireForm />}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {zone.coffrets && zone.coffrets.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 pr-4">Code</th>
-                      <th className="pb-2 pr-4">Nom</th>
-                      <th className="pb-2 pr-4">Pièce</th>
-                      <th className="pb-2 pr-4">Type</th>
-                      <th className="pb-2">Statut</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {zone.coffrets.map((coffret: any) => (
-                      <tr
-                        key={coffret.id}
-                        className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
-                        onClick={() => coffret.qr_token && navigate(`/baie/${coffret.qr_token}`)}
-                      >
-                        <td className="py-2 pr-4 font-mono text-xs">{coffret.code}</td>
-                        <td className="py-2 pr-4 font-medium">{coffret.name}</td>
-                        <td className="py-2 pr-4">{coffret.piece || "—"}</td>
-                        <td className="py-2 pr-4">{coffret.type || "—"}</td>
-                        <td className="py-2">
-                          <StatusBadge status={coffret.status as any} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">Aucun coffret dans cette zone.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <AddZoneForm
-          initialData={zone}
-          open={isEditOpen}
-          onOpenChange={setIsEditOpen}
-        />
-
-        <DeleteConfirmDialog
-          open={isDeleteOpen}
-          onOpenChange={setIsDeleteOpen}
-          title="Supprimer la zone"
-          description={`Êtes-vous sûr de vouloir supprimer la zone "${zone.name}" ? Cette action est irréversible.`}
-          onConfirm={handleDelete}
-          isLoading={deleteZone.isPending}
-        />
+    <div className="max-w-5xl mx-auto space-y-6">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        {zone.site && (
+          <>
+            <Link to={`/sites/${zone.site.id}`} className="hover:text-foreground transition-colors">
+              {zone.site.name}
+            </Link>
+            <span>/</span>
+          </>
+        )}
+        <span className="text-foreground">{zone.name}</span>
       </div>
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-foreground">{zone.name}</h1>
+              <StatusBadge status={zone.status as any} />
+            </div>
+            <p className="text-sm text-muted-foreground font-mono">{zone.code}</p>
+          </div>
+        </div>
+        {canWrite && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsEditOpen(true)}>Modifier</Button>
+            <Button variant="outline" className="text-destructive" onClick={() => setIsDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Supprimer
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Info cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Informations</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {zone.floor && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Étage</span>
+                <span className="font-medium">{zone.floor}</span>
+              </div>
+            )}
+            {zone.building && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Bâtiment</span>
+                <span className="font-medium">{zone.building}</span>
+              </div>
+            )}
+            {zone.description && (
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Description</span>
+                <span className="font-medium">{zone.description}</span>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Dates</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Créé le</span>
+              <span className="font-medium flex items-center gap-1">
+                <Calendar className="h-3 w-3" />
+                {new Date(zone.created_at).toLocaleDateString("fr-FR")}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Modifié le</span>
+              <span className="font-medium">
+                {new Date(zone.updated_at).toLocaleDateString("fr-FR")}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Batiments table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Bâtiments ({zone.batiments?.length || 0})
+            </span>
+            {canWrite && <AddBatimentForm />}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {zone.batiments && zone.batiments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4">Code</th>
+                    <th className="pb-2 pr-4">Nom</th>
+                    <th className="pb-2 pr-4">Adresse</th>
+                    <th className="pb-2 pr-4">Étages</th>
+                    <th className="pb-2">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {zone.batiments.map((bat: any) => (
+                    <tr
+                      key={bat.id}
+                      className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => navigate(`/batiments/${bat.id}`)}
+                    >
+                      <td className="py-2 pr-4 font-mono text-xs">{bat.code}</td>
+                      <td className="py-2 pr-4 font-medium">{bat.name}</td>
+                      <td className="py-2 pr-4">{bat.address || "—"}</td>
+                      <td className="py-2 pr-4">{bat.floors_count ?? "—"}</td>
+                      <td className="py-2">
+                        <StatusBadge status={bat.status as any} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">Aucun bâtiment dans cette zone.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Coffrets table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Server className="h-5 w-5" />
+              Coffrets ({zone.coffrets?.length || 0})
+            </span>
+            {canWrite && <AddArmoireForm />}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {zone.coffrets && zone.coffrets.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4">Code</th>
+                    <th className="pb-2 pr-4">Nom</th>
+                    <th className="pb-2 pr-4">Pièce</th>
+                    <th className="pb-2 pr-4">Type</th>
+                    <th className="pb-2">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {zone.coffrets.map((coffret: any) => (
+                    <tr
+                      key={coffret.id}
+                      className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
+                      onClick={() => coffret.qr_token && navigate(`/baie/${coffret.qr_token}`)}
+                    >
+                      <td className="py-2 pr-4 font-mono text-xs">{coffret.code}</td>
+                      <td className="py-2 pr-4 font-medium">{coffret.name}</td>
+                      <td className="py-2 pr-4">{coffret.piece || "—"}</td>
+                      <td className="py-2 pr-4">{coffret.type || "—"}</td>
+                      <td className="py-2">
+                        <StatusBadge status={coffret.status as any} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">Aucun coffret dans cette zone.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      <AddZoneForm
+        initialData={zone}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+      />
+
+      <DeleteConfirmDialog
+        open={isDeleteOpen}
+        onOpenChange={setIsDeleteOpen}
+        title="Supprimer la zone"
+        description={`Êtes-vous sûr de vouloir supprimer la zone "${zone.name}" ? Cette action est irréversible.`}
+        onConfirm={handleDelete}
+        isLoading={deleteZone.isPending}
+      />
     </div>
   );
 }
