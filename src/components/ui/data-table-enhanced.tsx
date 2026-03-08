@@ -362,50 +362,61 @@ export default function DataTableEnhanced({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedData.map((row, index) => (
-              <TableRow 
-                key={index} 
-                className="hover:bg-table-row-hover border-border cursor-pointer"
-                onClick={() => onRowClick?.(row)}
-              >
-                {columns.map((column, colIndex) => (
-                  <TableCell key={colIndex} className="text-card-foreground">
-                    {renderCellContent(row[column], column)}
-                  </TableCell>
-                ))}
-                {(onRowClick || onEdit || renderRowActions) && (
-                  <TableCell className="text-card-foreground">
-                    <div className="flex items-center gap-2">
-                      {onRowClick && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRowClick(row);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {onEdit && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEdit(row);
-                          }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {renderRowActions?.(row)}
-                    </div>
-                  </TableCell>
-                )}
+            {paginatedData.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length + ((onRowClick || onEdit || renderRowActions) ? 1 : 0)}
+                  className="h-32 text-center text-muted-foreground"
+                >
+                  Aucun element a afficher
+                </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              paginatedData.map((row, index) => (
+                <TableRow
+                  key={index}
+                  className="hover:bg-table-row-hover border-border cursor-pointer"
+                  onClick={() => onRowClick?.(row)}
+                >
+                  {columns.map((column, colIndex) => (
+                    <TableCell key={colIndex} className="text-card-foreground">
+                      {renderCellContent(row[column], column)}
+                    </TableCell>
+                  ))}
+                  {(onRowClick || onEdit || renderRowActions) && (
+                    <TableCell className="text-card-foreground">
+                      <div className="flex items-center gap-2">
+                        {onRowClick && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onRowClick(row);
+                            }}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {onEdit && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onEdit(row);
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {renderRowActions?.(row)}
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

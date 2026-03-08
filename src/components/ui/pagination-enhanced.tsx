@@ -54,21 +54,21 @@ export function PaginationEnhanced({
     return rangeWithDots;
   };
 
-  if (totalPages <= 1) return null;
-
   return (
     <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between", className)}>
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
         <span>
-          Affichage de {startItem} à {endItem} sur {totalItems} éléments
+          {totalItems === 0
+            ? "Aucun element"
+            : `Affichage de ${startItem} a ${endItem} sur ${totalItems} elements`}
         </span>
         <div className="flex items-center gap-2">
-          <span>Éléments par page:</span>
+          <span>Par page :</span>
           <Select
             value={itemsPerPage.toString()}
             onValueChange={(value) => onItemsPerPageChange(parseInt(value))}
           >
-            <SelectTrigger className="w-16">
+            <SelectTrigger className="w-16 h-8">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -76,54 +76,57 @@ export function PaginationEnhanced({
               <SelectItem value="10">10</SelectItem>
               <SelectItem value="20">20</SelectItem>
               <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      <nav className="flex items-center gap-1" role="navigation" aria-label="pagination">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage - 1)}
-          disabled={currentPage <= 1}
-          className="gap-1"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Précédent
-        </Button>
+      {totalPages > 1 && (
+        <nav className="flex items-center gap-1" role="navigation" aria-label="pagination">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage - 1)}
+            disabled={currentPage <= 1}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Precedent
+          </Button>
 
-        <div className="flex items-center gap-1">
-          {getVisiblePages().map((page, index) => (
-            page === '...' ? (
-              <span key={index} className="flex h-9 w-9 items-center justify-center">
-                <MoreHorizontal className="h-4 w-4" />
-              </span>
-            ) : (
-              <Button
-                key={index}
-                variant={currentPage === page ? "default" : "outline"}
-                size="sm"
-                onClick={() => onPageChange(page as number)}
-                className="h-9 w-9"
-              >
-                {page}
-              </Button>
-            )
-          ))}
-        </div>
+          <div className="flex items-center gap-1">
+            {getVisiblePages().map((page, index) => (
+              page === '...' ? (
+                <span key={index} className="flex h-9 w-9 items-center justify-center">
+                  <MoreHorizontal className="h-4 w-4" />
+                </span>
+              ) : (
+                <Button
+                  key={index}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => onPageChange(page as number)}
+                  className="h-9 w-9"
+                >
+                  {page}
+                </Button>
+              )
+            ))}
+          </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onPageChange(currentPage + 1)}
-          disabled={currentPage >= totalPages}
-          className="gap-1"
-        >
-          Suivant
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </nav>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange(currentPage + 1)}
+            disabled={currentPage >= totalPages}
+            className="gap-1"
+          >
+            Suivant
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </nav>
+      )}
     </div>
   );
 }

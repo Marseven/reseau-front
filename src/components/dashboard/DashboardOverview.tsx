@@ -168,21 +168,23 @@ export default function DashboardOverview() {
             </CardHeader>
             <CardContent>
               {portUtil ? (
-                <div className="relative">
-                  <ResponsiveContainer width="100%" height={150}>
-                    <RadialBarChart
-                      innerRadius="60%"
-                      outerRadius="90%"
-                      data={portChartData}
-                      startAngle={180}
-                      endAngle={0}
-                      cx="50%"
-                      cy="85%"
-                    >
-                      <RadialBar dataKey="value" cornerRadius={5} />
-                    </RadialBarChart>
-                  </ResponsiveContainer>
-                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-4">
+                <div>
+                  <div className="relative" style={{ height: 130 }}>
+                    <ResponsiveContainer width="100%" height={130}>
+                      <RadialBarChart
+                        innerRadius="55%"
+                        outerRadius="85%"
+                        data={portChartData}
+                        startAngle={180}
+                        endAngle={0}
+                        cx="50%"
+                        cy="95%"
+                      >
+                        <RadialBar dataKey="value" cornerRadius={5} />
+                      </RadialBarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="flex flex-col items-center -mt-2">
                     <span className="text-2xl font-bold font-mono">{portUtil.utilization_percent}%</span>
                     <span className="text-[11px] text-muted-foreground">
                       {portUtil.connected} / {portUtil.total} ports connectes
