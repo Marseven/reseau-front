@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { login as loginAction, logout as logoutAction } from '@/store/users';
+import type { RootState } from '@/store/store';
 import api from '@/axios';
 
 interface User {
@@ -28,22 +29,23 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  // Read auth state from Redux (persisted via redux-persist)
+  const reduxUser = useSelector((state: RootState) => state.user.user);
+  const reduxToken = useSelector((state: RootState) => state.user.token);
+  const reduxIsLogin = useSelector((state: RootState) => state.user.isLogin);
+
+  // Local user state initialized from Redux (already restored by PersistGate)
+  const [user, setUser] = useState<User | null>(reduxUser as User | null);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem('currentUser');
-    const storedToken = localStorage.getItem('authToken');
-    if (storedUser && storedToken) {
-      const parsed = JSON.parse(storedUser);
-      setUser(parsed);
-      dispatch(loginAction({ user: parsed, token: storedToken }));
-    }
-  }, [dispatch]);
+  // Sync: if Redux has user but local state doesn't (after PersistGate restore)
+  if (reduxIsLogin && reduxUser && !user) {
+    setUser(reduxUser as User);
+  }
 
-  const login = async (email: string, password: string): Promise<LoginResult> => {
+  const login = async (username: string, password: string): Promise<LoginResult> => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await api.post('/auth/login', { username, password });
 
       if (response.data.status === 200 && response.data.data?.requires_2fa) {
         return {
@@ -57,8 +59,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const token = response.data.data.token;
 
         setUser(userData);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        localStorage.setItem('authToken', token);
         dispatch(loginAction({ user: userData, token }));
         return { success: true };
       }
@@ -89,8 +89,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const token = response.data.data.token;
 
         setUser(userData);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-        localStorage.setItem('authToken', token);
         dispatch(loginAction({ user: userData, token }));
         return true;
       }
@@ -107,7 +105,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (response.data.status === 200 && response.data.data) {
         const userData = response.data.data;
         setUser(userData);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
       }
     } catch {
       // Silently fail
@@ -121,13 +118,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Token may already be expired
     } finally {
       setUser(null);
-      localStorage.removeItem('currentUser');
-      localStorage.removeItem('authToken');
       dispatch(logoutAction());
     }
   };
 
-  const isAuthenticated = !!user;
+  // Authenticated if Redux has a valid login state OR local user is set
+  const isAuthenticated = !!(reduxIsLogin && reduxToken) || !!user;
 
   return (
     <AuthContext.Provider value={{ user, login, verifyTwoFactor, refreshUser, logout, isAuthenticated }}>
