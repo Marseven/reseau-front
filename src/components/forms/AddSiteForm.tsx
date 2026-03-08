@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateSite } from "@/hooks/api";
+import { useCreateSite, useUpdateSite } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -26,52 +26,86 @@ const siteSchema = z.object({
 
 type SiteFormData = z.infer<typeof siteSchema>;
 
-export default function AddSiteForm() {
-  const [open, setOpen] = useState(false);
+interface AddSiteFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+export default function AddSiteForm({ initialData, open: controlledOpen, onOpenChange }: AddSiteFormProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createSite = useCreateSite();
+  const updateSite = useUpdateSite();
+  const mutation = isEdit ? updateSite : createSite;
 
   const form = useForm<SiteFormData>({
     resolver: zodResolver(siteSchema),
     defaultValues: {
-      code: "",
-      name: "",
-      address: "",
-      city: "",
-      country: "Gabon",
-      longitude: "",
-      latitude: "",
-      status: "active",
-      description: "",
+      code: "", name: "", address: "", city: "",
+      country: "Gabon", longitude: "", latitude: "",
+      status: "active", description: "",
     }
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        code: initialData.code || "",
+        name: initialData.name || "",
+        address: initialData.address || "",
+        city: initialData.city || "",
+        country: initialData.country || "Gabon",
+        longitude: initialData.longitude != null ? String(initialData.longitude) : "",
+        latitude: initialData.latitude != null ? String(initialData.latitude) : "",
+        status: initialData.status || "active",
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, open]);
 
   const onSubmit = (data: SiteFormData) => {
     const payload: any = { ...data };
     if (payload.longitude) payload.longitude = Number(payload.longitude);
     if (payload.latitude) payload.latitude = Number(payload.latitude);
 
-    createSite.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Site ajouté", description: `Le site ${data.name} a été ajouté avec succès` });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout du site", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updateSite.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Site mis à jour", description: `Le site ${data.name} a été mis à jour avec succès` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createSite.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Site ajouté", description: `Le site ${data.name} a été ajouté avec succès` });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout du site", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter un site
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter un site
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouveau site</DialogTitle>
-          <DialogDescription>Remplissez les informations du nouveau site géographique.</DialogDescription>
+          <DialogTitle>{isEdit ? "Modifier le site" : "Ajouter un nouveau site"}</DialogTitle>
+          <DialogDescription>{isEdit ? "Modifiez les informations du site." : "Remplissez les informations du nouveau site géographique."}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -137,7 +171,7 @@ export default function AddSiteForm() {
             <FormField control={form.control} name="status" render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="active">Actif</SelectItem>
@@ -159,7 +193,7 @@ export default function AddSiteForm() {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createSite.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Ajouter"}</Button>
             </div>
           </form>
         </Form>

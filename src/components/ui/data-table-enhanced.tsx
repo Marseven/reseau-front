@@ -34,6 +34,7 @@ interface DataTableEnhancedProps {
   onRowClick?: (row: any) => void;
   onEdit?: (row: any) => void;
   renderRowActions?: (row: any) => React.ReactNode;
+  columnRenderers?: Record<string, (value: any, row: any) => React.ReactNode>;
   enableSearch?: boolean;
   enableFilters?: boolean;
   enableExport?: boolean;
@@ -126,6 +127,14 @@ const COLUMN_LABELS: Record<string, string> = {
   endpoint: "Endpoint",
   monitored_scope: "Périmètre",
 
+  // Compteurs
+  zones_count: "Zones",
+  batiments_count: "Bâtiments",
+  coffrets_count: "Coffrets",
+  salles_count: "Salles",
+  equipments_count: "Équipements",
+  ports_count: "Ports",
+
   // VLANs
   vlan_id: "ID VLAN",
   network: "Réseau",
@@ -157,6 +166,7 @@ export default function DataTableEnhanced({
   onRowClick,
   onEdit,
   renderRowActions,
+  columnRenderers,
   enableSearch = true,
   enableFilters = true,
   enableExport = true,
@@ -380,7 +390,9 @@ export default function DataTableEnhanced({
                 >
                   {columns.map((column, colIndex) => (
                     <TableCell key={colIndex} className="text-card-foreground">
-                      {renderCellContent(row[column], column)}
+                      {columnRenderers?.[column]
+                        ? columnRenderers[column](row[column], row)
+                        : renderCellContent(row[column], column)}
                     </TableCell>
                   ))}
                   {(onRowClick || onEdit || renderRowActions) && (

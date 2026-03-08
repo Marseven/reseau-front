@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreatePort, useEquipements } from "@/hooks/api";
+import { useCreatePort, useUpdatePort, useEquipements } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -26,54 +26,88 @@ const portSchema = z.object({
 
 type PortFormData = z.infer<typeof portSchema>;
 
-const AddPortForm = () => {
-  const [open, setOpen] = useState(false);
+interface AddPortFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+const AddPortForm = ({ initialData, open: controlledOpen, onOpenChange }: AddPortFormProps = {}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createPort = useCreatePort();
+  const updatePort = useUpdatePort();
+  const mutation = isEdit ? updatePort : createPort;
   const { data: paginatedEquipements } = useEquipements({ per_page: 100 });
   const equipements = paginatedEquipements?.data || [];
 
   const form = useForm<PortFormData>({
     resolver: zodResolver(portSchema),
     defaultValues: {
-      port_label: "",
-      device_name: "",
-      port_type: "",
-      speed: "",
-      status: "active",
-      vlan: "",
-      equipement_id: "",
-      poe_enabled: false,
-      description: "",
+      port_label: "", device_name: "", port_type: "",
+      speed: "", status: "active", vlan: "",
+      equipement_id: "", poe_enabled: false, description: "",
     }
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        port_label: initialData.port_label || "",
+        device_name: initialData.device_name || "",
+        port_type: initialData.port_type || "",
+        speed: initialData.speed || "",
+        status: initialData.status || "active",
+        vlan: initialData.vlan || "",
+        equipement_id: initialData.equipement_id ? String(initialData.equipement_id) : "",
+        poe_enabled: initialData.poe_enabled ?? false,
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, open]);
 
   const onSubmit = (data: PortFormData) => {
     const payload: any = { ...data };
     if (payload.equipement_id) payload.equipement_id = Number(payload.equipement_id);
     else delete payload.equipement_id;
 
-    createPort.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Port ajouté", description: `Le port ${data.port_label} a été ajouté avec succès` });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updatePort.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Port mis à jour", description: `Le port ${data.port_label} a été mis à jour avec succès` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createPort.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Port ajouté", description: `Le port ${data.port_label} a été ajouté avec succès` });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter un port
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter un port
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouveau port</DialogTitle>
-          <DialogDescription>Remplissez les informations du nouveau port réseau.</DialogDescription>
+          <DialogTitle>{isEdit ? "Modifier le port" : "Ajouter un nouveau port"}</DialogTitle>
+          <DialogDescription>{isEdit ? "Modifiez les informations du port." : "Remplissez les informations du nouveau port réseau."}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -98,7 +132,7 @@ const AddPortForm = () => {
               <FormField control={form.control} name="port_type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="RJ45">RJ45</SelectItem>
@@ -113,7 +147,7 @@ const AddPortForm = () => {
               <FormField control={form.control} name="speed" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Vitesse</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Vitesse" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="100M">100 Mbps</SelectItem>
@@ -138,7 +172,7 @@ const AddPortForm = () => {
               <FormField control={form.control} name="status" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Statut</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="active">Actif</SelectItem>
@@ -154,7 +188,7 @@ const AddPortForm = () => {
             <FormField control={form.control} name="equipement_id" render={({ field }) => (
               <FormItem>
                 <FormLabel>Équipement parent</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner l'équipement" /></SelectTrigger></FormControl>
                   <SelectContent>
                     {equipements.map((eq: any) => (
@@ -176,7 +210,7 @@ const AddPortForm = () => {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createPort.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Ajouter"}</Button>
             </div>
           </form>
         </Form>

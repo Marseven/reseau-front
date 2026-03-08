@@ -1,11 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Trash2, QrCode, Download, Loader2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataTableEnhanced from "../ui/data-table-enhanced";
 import QueryWrapper from "../ui/query-wrapper";
 import DetailsModal from "../ui/details-modal";
-import EditModal from "../ui/edit-modal";
 import DeleteConfirmDialog from "../ui/delete-confirm-dialog";
 import AddEquipmentForm from "../forms/AddEquipmentForm";
 import AddPortForm from "../forms/AddPortForm";
@@ -15,11 +16,11 @@ import AddArmoireForm from "../forms/AddArmoireForm";
 import QrCodeDialog from "../qrcode/QrCodeDialog";
 import LabelGeneratorDialog from "../labels/LabelGeneratorDialog";
 import {
-  useCoffrets, useUpdateCoffret, useDeleteCoffret,
-  useEquipements, useUpdateEquipement, useDeleteEquipement,
-  usePorts, useUpdatePort, useDeletePort,
-  useLiaisons, useUpdateLiaison, useDeleteLiaison,
-  useSystems, useUpdateSystem, useDeleteSystem,
+  useCoffrets, useDeleteCoffret,
+  useEquipements, useDeleteEquipement,
+  usePorts, useDeletePort,
+  useLiaisons, useDeleteLiaison,
+  useSystems, useDeleteSystem,
   useMetrics,
   useExportCoffretsCsv,
 } from "@/hooks/api";
@@ -37,11 +38,7 @@ export default function ArmoiresSection() {
 
   const { canWrite } = useRole();
   const exportCoffretsCsv = useExportCoffretsCsv();
-  const updateCoffret = useUpdateCoffret();
-  const updateEquipement = useUpdateEquipement();
-  const updatePort = useUpdatePort();
-  const updateLiaison = useUpdateLiaison();
-  const updateSystem = useUpdateSystem();
+  const navigate = useNavigate();
 
   const deleteCoffret = useDeleteCoffret();
   const deleteEquipement = useDeleteEquipement();
@@ -57,6 +54,7 @@ export default function ArmoiresSection() {
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("coffrets");
@@ -64,25 +62,47 @@ export default function ArmoiresSection() {
   const [labelDialogOpen, setLabelDialogOpen] = useState(false);
   const [labelType, setLabelType] = useState<"coffrets" | "equipements">("coffrets");
 
-  const handleRowClick = (item: any) => {
+  const handleCoffretRowClick = (item: any) => {
+    if (item.qr_token) {
+      navigate(`/baie/${item.qr_token}`);
+    }
+  };
+
+  const handleEquipementRowClick = (item: any) => {
+    if (item.qr_token) {
+      navigate(`/equipement/${item.qr_token}`);
+    }
+  };
+
+  const handleDetailsRowClick = (item: any) => {
     setSelectedItem(item);
     setIsDetailsOpen(true);
   };
 
-  const handleEdit = (item: any) => {
-    setSelectedItem(item);
+  const handleEditCoffret = (item: any) => {
+    setEditItem({ ...item, _editType: 'coffret' });
     setIsEditOpen(true);
   };
 
-  const getMutationForTab = () => {
-    switch (activeTab) {
-      case "coffrets": return updateCoffret;
-      case "equipements": return updateEquipement;
-      case "ports": return updatePort;
-      case "liaisons": return updateLiaison;
-      case "systemes": return updateSystem;
-      default: return updateCoffret;
-    }
+  const handleEditEquipement = (item: any) => {
+    setEditItem({ ...item, _editType: 'equipement' });
+    setIsEditOpen(true);
+  };
+
+  const handleEditPort = (item: any) => {
+    setEditItem({ ...item, _editType: 'port' });
+    setIsEditOpen(true);
+  };
+
+  const handleEditLiaison = (item: any) => {
+    setEditItem({ ...item, _editType: 'liaison' });
+    setIsEditOpen(true);
+  };
+
+  const handleEditSystem = (item: any) => {
+    setEditItem({ ...item, _editType: 'systeme' });
+    setIsDetailsOpen(false);
+    setIsEditOpen(true);
   };
 
   const getDeleteMutationForTab = () => {
@@ -94,17 +114,6 @@ export default function ArmoiresSection() {
       case "systemes": return deleteSystem;
       default: return deleteCoffret;
     }
-  };
-
-  const handleSave = (updatedItem: any) => {
-    const mutation = getMutationForTab();
-    mutation.mutate(updatedItem, {
-      onSuccess: () => {
-        toast({ title: "Mis à jour", description: "L'élément a été mis à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -268,10 +277,15 @@ export default function ArmoiresSection() {
             </div>
             <DataTableEnhanced
               title={`${coffrets.length} baies`}
-              columns={["code", "name", "piece", "type", "zone_name", "status"]}
+              columns={["code", "name", "piece", "type", "zone_name", "equipments_count", "status"]}
               data={coffretTableData}
-              onRowClick={handleRowClick}
-              onEdit={canWrite ? handleEdit : undefined}
+              onRowClick={handleCoffretRowClick}
+              onEdit={canWrite ? handleEditCoffret : undefined}
+              columnRenderers={{
+                equipments_count: (value: any) => (
+                  <Badge variant="secondary">{value || 0}</Badge>
+                ),
+              }}
               renderRowActions={coffretActions}
             />
           </TabsContent>
@@ -283,10 +297,15 @@ export default function ArmoiresSection() {
             </div>
             <DataTableEnhanced
               title={`${equipements.length} équipements`}
-              columns={["name", "type", "classification", "modele", "coffret_name", "status", "ip_address"]}
+              columns={["name", "type", "classification", "modele", "coffret_name", "ports_count", "status", "ip_address"]}
               data={equipementTableData}
-              onRowClick={handleRowClick}
-              onEdit={canWrite ? handleEdit : undefined}
+              onRowClick={handleEquipementRowClick}
+              onEdit={canWrite ? handleEditEquipement : undefined}
+              columnRenderers={{
+                ports_count: (value: any) => (
+                  <Badge variant="secondary">{value || 0}</Badge>
+                ),
+              }}
               renderRowActions={equipementActions}
             />
           </TabsContent>
@@ -300,8 +319,8 @@ export default function ArmoiresSection() {
               title={`${ports.length} ports`}
               columns={["port_label", "port_type", "speed", "status", "vlan", "equipement_name"]}
               data={portTableData}
-              onRowClick={handleRowClick}
-              onEdit={canWrite ? handleEdit : undefined}
+              onRowClick={handleDetailsRowClick}
+              onEdit={canWrite ? handleEditPort : undefined}
               renderRowActions={deleteAction}
             />
           </TabsContent>
@@ -315,8 +334,8 @@ export default function ArmoiresSection() {
               title={`${liaisons.length} liaisons`}
               columns={["label", "media", "from", "to", "status_label", "length"]}
               data={liaisonTableData}
-              onRowClick={handleRowClick}
-              onEdit={canWrite ? handleEdit : undefined}
+              onRowClick={handleDetailsRowClick}
+              onEdit={canWrite ? handleEditLiaison : undefined}
               renderRowActions={deleteAction}
             />
           </TabsContent>
@@ -330,32 +349,58 @@ export default function ArmoiresSection() {
               title={`${systems.length} systèmes`}
               columns={["name", "type", "vendor", "endpoint", "monitored_scope", "status"]}
               data={systems}
-              onRowClick={handleRowClick}
-              onEdit={canWrite ? handleEdit : undefined}
+              onRowClick={handleDetailsRowClick}
+              onEdit={canWrite ? handleEditSystem : undefined}
               renderRowActions={deleteAction}
             />
           </TabsContent>
         </Tabs>
       </QueryWrapper>
 
+      {/* DetailsModal kept for ports/liaisons/systems */}
       <DetailsModal
         open={isDetailsOpen}
         onOpenChange={setIsDetailsOpen}
-        title={`Détails`}
+        title="Détails"
         data={selectedItem}
         onEdit={() => {
           setIsDetailsOpen(false);
-          setIsEditOpen(true);
+          if (selectedItem) {
+            setEditItem(selectedItem);
+            setIsEditOpen(true);
+          }
         }}
       />
 
-      <EditModal
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        title={`Modifier`}
-        data={selectedItem}
-        onSave={handleSave}
-      />
+      {/* Edit forms by type */}
+      {editItem?._editType === 'coffret' && (
+        <AddArmoireForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
+      {editItem?._editType === 'equipement' && (
+        <AddEquipmentForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
+      {editItem?._editType === 'port' && (
+        <AddPortForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
+      {editItem?._editType === 'liaison' && (
+        <AddLiaisonForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

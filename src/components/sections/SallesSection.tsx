@@ -1,47 +1,36 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
-import DetailsModal from "@/components/ui/details-modal";
-import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddSalleForm from "@/components/forms/AddSalleForm";
-import { useSalles, useUpdateSalle, useDeleteSalle } from "@/hooks/api";
+import { useSalles, useDeleteSalle } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function SallesSection() {
   const [params, setParams] = useState({ per_page: 50 });
   const { data: paginatedSalles, isLoading, isError, error } = useSalles(params);
-  const updateSalle = useUpdateSalle();
   const deleteSalle = useDeleteSalle();
   const { canWrite } = useRole();
+  const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const salles = paginatedSalles?.data || [];
 
   const handleRowClick = (item: any) => {
-    setSelectedItem(item);
-    setIsDetailsOpen(true);
+    navigate(`/salles/${item.id}`);
   };
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setEditItem(item);
     setIsEditOpen(true);
-  };
-
-  const handleSave = (updatedItem: any) => {
-    updateSalle.mutate(updatedItem, {
-      onSuccess: () => {
-        toast({ title: "Salle mise à jour", description: "La salle a été mise à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -89,10 +78,21 @@ export default function SallesSection() {
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
         <DataTableEnhanced
           title={`${salles.length} salles`}
-          columns={["code", "name", "batiment_name", "floor", "type_label", "status"]}
+          columns={["code", "name", "batiment_name", "coffrets_count", "type_label", "status"]}
           data={tableData}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
+          columnRenderers={{
+            coffrets_count: (value: any, row: any) => (
+              <Badge
+                variant="secondary"
+                className="cursor-pointer hover:bg-primary/20"
+                onClick={(e) => { e.stopPropagation(); navigate(`/salles/${row.id}`); }}
+              >
+                {value || 0}
+              </Badge>
+            ),
+          }}
           renderRowActions={canWrite ? (row: any) => (
             <Button
               variant="ghost"
@@ -106,20 +106,10 @@ export default function SallesSection() {
         />
       </QueryWrapper>
 
-      <DetailsModal
-        open={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
-        title="Détails de la salle"
-        data={selectedItem}
-        onEdit={() => { setIsDetailsOpen(false); setIsEditOpen(true); }}
-      />
-
-      <EditModal
+      <AddSalleForm
+        initialData={editItem}
         open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        title="Modifier la salle"
-        data={selectedItem}
-        onSave={handleSave}
+        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
       />
 
       <DeleteConfirmDialog

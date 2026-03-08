@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateZone, useSites } from "@/hooks/api";
+import { useCreateZone, useUpdateZone, useSites } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -24,51 +24,84 @@ const zoneSchema = z.object({
 
 type ZoneFormData = z.infer<typeof zoneSchema>;
 
-export default function AddZoneForm() {
-  const [open, setOpen] = useState(false);
+interface AddZoneFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+export default function AddZoneForm({ initialData, open: controlledOpen, onOpenChange }: AddZoneFormProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createZone = useCreateZone();
+  const updateZone = useUpdateZone();
+  const mutation = isEdit ? updateZone : createZone;
   const { data: paginatedSites } = useSites({ per_page: 100 });
   const sites = paginatedSites?.data || [];
 
   const form = useForm<ZoneFormData>({
     resolver: zodResolver(zoneSchema),
     defaultValues: {
-      code: "",
-      name: "",
-      floor: "",
-      building: "",
-      site_id: "",
-      status: "active",
-      description: "",
+      code: "", name: "", floor: "", building: "",
+      site_id: "", status: "active", description: "",
     }
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        code: initialData.code || "",
+        name: initialData.name || "",
+        floor: initialData.floor || "",
+        building: initialData.building || "",
+        site_id: initialData.site_id ? String(initialData.site_id) : "",
+        status: initialData.status || "active",
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, open]);
 
   const onSubmit = (data: ZoneFormData) => {
     const payload: any = { ...data };
     payload.site_id = Number(payload.site_id);
 
-    createZone.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Zone ajoutée", description: `La zone ${data.name} a été ajoutée avec succès` });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout de la zone", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updateZone.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Zone mise à jour", description: `La zone ${data.name} a été mise à jour avec succès` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createZone.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Zone ajoutée", description: `La zone ${data.name} a été ajoutée avec succès` });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout de la zone", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Ajouter une zone
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Ajouter une zone
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter une nouvelle zone</DialogTitle>
-          <DialogDescription>Remplissez les informations de la nouvelle zone.</DialogDescription>
+          <DialogTitle>{isEdit ? "Modifier la zone" : "Ajouter une nouvelle zone"}</DialogTitle>
+          <DialogDescription>{isEdit ? "Modifiez les informations de la zone." : "Remplissez les informations de la nouvelle zone."}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -109,7 +142,7 @@ export default function AddZoneForm() {
             <FormField control={form.control} name="site_id" render={({ field }) => (
               <FormItem>
                 <FormLabel>Site</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner le site" /></SelectTrigger></FormControl>
                   <SelectContent>
                     {sites.map((site: any) => (
@@ -124,7 +157,7 @@ export default function AddZoneForm() {
             <FormField control={form.control} name="status" render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="active">Actif</SelectItem>
@@ -146,7 +179,7 @@ export default function AddZoneForm() {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createZone.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Ajouter"}</Button>
             </div>
           </form>
         </Form>

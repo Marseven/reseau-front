@@ -15,6 +15,10 @@ import SectionSkeleton from "./components/ui/section-skeleton";
 
 const CoffretDetailPage = lazy(() => import("./pages/CoffretDetailPage"));
 const EquipementDetailPage = lazy(() => import("./pages/EquipementDetailPage"));
+const SiteDetailPage = lazy(() => import("./pages/SiteDetailPage"));
+const ZoneDetailPage = lazy(() => import("./pages/ZoneDetailPage"));
+const BatimentDetailPage = lazy(() => import("./pages/BatimentDetailPage"));
+const SalleDetailPage = lazy(() => import("./pages/SalleDetailPage"));
 
 const App = () => (
   <ThemeProvider>
@@ -38,6 +42,34 @@ const App = () => (
                 <ProtectedRoute>
                   <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
                     <EquipementDetailPage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/sites/:id" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                    <SiteDetailPage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/zones/:id" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                    <ZoneDetailPage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/batiments/:id" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                    <BatimentDetailPage />
+                  </Suspense>
+                </ProtectedRoute>
+              } />
+              <Route path="/salles/:id" element={
+                <ProtectedRoute>
+                  <Suspense fallback={<div className="p-8"><SectionSkeleton /></div>}>
+                    <SalleDetailPage />
                   </Suspense>
                 </ProtectedRoute>
               } />

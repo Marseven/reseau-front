@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateBatiment, useZones } from "@/hooks/api";
+import { useCreateBatiment, useUpdateBatiment, useZones } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -24,9 +24,21 @@ const batimentSchema = z.object({
 
 type BatimentFormData = z.infer<typeof batimentSchema>;
 
-export default function AddBatimentForm() {
-  const [open, setOpen] = useState(false);
+interface AddBatimentFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+export default function AddBatimentForm({ initialData, open: controlledOpen, onOpenChange }: AddBatimentFormProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createBatiment = useCreateBatiment();
+  const updateBatiment = useUpdateBatiment();
+  const mutation = isEdit ? updateBatiment : createBatiment;
   const { data: paginatedZones } = useZones({ per_page: 100 });
   const zones = paginatedZones?.data || [];
 
@@ -38,31 +50,57 @@ export default function AddBatimentForm() {
     }
   });
 
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        code: initialData.code || "",
+        name: initialData.name || "",
+        zone_id: initialData.zone_id ? String(initialData.zone_id) : "",
+        address: initialData.address || "",
+        floors_count: initialData.floors_count != null ? String(initialData.floors_count) : "",
+        status: initialData.status || "active",
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, open]);
+
   const onSubmit = (data: BatimentFormData) => {
     const payload: any = { ...data };
     payload.zone_id = Number(payload.zone_id);
     if (payload.floors_count) payload.floors_count = Number(payload.floors_count);
     else delete payload.floors_count;
 
-    createBatiment.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Bâtiment ajouté", description: `Le bâtiment ${data.name} a été ajouté avec succès` });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout du bâtiment", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updateBatiment.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Bâtiment mis à jour", description: `Le bâtiment ${data.name} a été mis à jour avec succès` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createBatiment.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Bâtiment ajouté", description: `Le bâtiment ${data.name} a été ajouté avec succès` });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout du bâtiment", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button><Plus className="mr-2 h-4 w-4" />Ajouter un bâtiment</Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button><Plus className="mr-2 h-4 w-4" />Ajouter un bâtiment</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouveau bâtiment</DialogTitle>
-          <DialogDescription>Remplissez les informations du nouveau bâtiment.</DialogDescription>
+          <DialogTitle>{isEdit ? "Modifier le bâtiment" : "Ajouter un nouveau bâtiment"}</DialogTitle>
+          <DialogDescription>{isEdit ? "Modifiez les informations du bâtiment." : "Remplissez les informations du nouveau bâtiment."}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -86,7 +124,7 @@ export default function AddBatimentForm() {
             <FormField control={form.control} name="zone_id" render={({ field }) => (
               <FormItem>
                 <FormLabel>Zone</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner la zone" /></SelectTrigger></FormControl>
                   <SelectContent>
                     {zones.map((zone: any) => (
@@ -118,7 +156,7 @@ export default function AddBatimentForm() {
             <FormField control={form.control} name="status" render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="active">Actif</SelectItem>
@@ -140,7 +178,7 @@ export default function AddBatimentForm() {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createBatiment.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Ajouter"}</Button>
             </div>
           </form>
         </Form>

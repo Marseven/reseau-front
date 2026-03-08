@@ -1,27 +1,27 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Trash2, QrCode, Download, Loader2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
-import DetailsModal from "@/components/ui/details-modal";
-import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddEquipmentForm from "@/components/forms/AddEquipmentForm";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
 import LabelGeneratorDialog from "@/components/labels/LabelGeneratorDialog";
-import { useEquipements, useUpdateEquipement, useDeleteEquipement, useExportEquipementsCsv } from "@/hooks/api";
+import { useEquipements, useDeleteEquipement, useExportEquipementsCsv } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function EquipmentsSection() {
   const [params] = useState({ per_page: 50 });
   const { data: paginatedEquipements, isLoading, isError, error } = useEquipements(params);
-  const updateEquipement = useUpdateEquipement();
   const deleteEquipement = useDeleteEquipement();
   const { canWrite } = useRole();
   const exportCsv = useExportEquipementsCsv();
+  const navigate = useNavigate();
   const [selectedEquipment, setSelectedEquipment] = useState<any>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [qrItem, setQrItem] = useState<any>(null);
@@ -30,23 +30,14 @@ export default function EquipmentsSection() {
   const equipements = paginatedEquipements?.data || [];
 
   const handleRowClick = (equipment: any) => {
-    setSelectedEquipment(equipment);
-    setIsDetailsOpen(true);
+    if (equipment.qr_token) {
+      navigate(`/equipement/${equipment.qr_token}`);
+    }
   };
 
   const handleEdit = (equipment: any) => {
-    setSelectedEquipment(equipment);
+    setEditItem(equipment);
     setIsEditOpen(true);
-  };
-
-  const handleSave = (updatedEquipment: any) => {
-    updateEquipement.mutate(updatedEquipment, {
-      onSuccess: () => {
-        toast({ title: "Équipement mis à jour", description: "L'équipement a été mis à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -103,10 +94,17 @@ export default function EquipmentsSection() {
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
         <DataTableEnhanced
           title={`${equipements.length} équipements`}
-          columns={["name", "type", "classification", "modele", "coffret_name", "status", "ip_address"]}
+          columns={["name", "type", "classification", "modele", "coffret_name", "ports_count", "status", "ip_address"]}
           data={tableData}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
+          columnRenderers={{
+            ports_count: (value: any) => (
+              <Badge variant="secondary">
+                {value || 0}
+              </Badge>
+            ),
+          }}
           filterPresets={{
             classification: [
               { label: "IT", value: "IT" },
@@ -144,23 +142,10 @@ export default function EquipmentsSection() {
         />
       </QueryWrapper>
 
-      <DetailsModal
-        open={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
-        title="Détails de l'équipement"
-        data={selectedEquipment}
-        onEdit={() => {
-          setIsDetailsOpen(false);
-          setIsEditOpen(true);
-        }}
-      />
-
-      <EditModal
+      <AddEquipmentForm
+        initialData={editItem}
         open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        title="Modifier l'équipement"
-        data={selectedEquipment}
-        onSave={handleSave}
+        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
       />
 
       <DeleteConfirmDialog

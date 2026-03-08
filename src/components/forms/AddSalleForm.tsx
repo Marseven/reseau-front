@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateSalle, useBatiments } from "@/hooks/api";
+import { useCreateSalle, useUpdateSalle, useBatiments } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -24,9 +24,21 @@ const salleSchema = z.object({
 
 type SalleFormData = z.infer<typeof salleSchema>;
 
-export default function AddSalleForm() {
-  const [open, setOpen] = useState(false);
+interface AddSalleFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+export default function AddSalleForm({ initialData, open: controlledOpen, onOpenChange }: AddSalleFormProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createSalle = useCreateSalle();
+  const updateSalle = useUpdateSalle();
+  const mutation = isEdit ? updateSalle : createSalle;
   const { data: paginatedBatiments } = useBatiments({ per_page: 100 });
   const batiments = paginatedBatiments?.data || [];
 
@@ -38,30 +50,56 @@ export default function AddSalleForm() {
     }
   });
 
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        code: initialData.code || "",
+        name: initialData.name || "",
+        batiment_id: initialData.batiment_id ? String(initialData.batiment_id) : "",
+        floor: initialData.floor || "",
+        type: initialData.type || "",
+        status: initialData.status || "active",
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, open]);
+
   const onSubmit = (data: SalleFormData) => {
     const payload: any = { ...data };
     payload.batiment_id = Number(payload.batiment_id);
     if (!payload.type) delete payload.type;
 
-    createSalle.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Salle ajoutée", description: `La salle ${data.name} a été ajoutée avec succès` });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout de la salle", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updateSalle.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Salle mise à jour", description: `La salle ${data.name} a été mise à jour avec succès` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createSalle.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Salle ajoutée", description: `La salle ${data.name} a été ajoutée avec succès` });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout de la salle", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button><Plus className="mr-2 h-4 w-4" />Ajouter une salle</Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button><Plus className="mr-2 h-4 w-4" />Ajouter une salle</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Ajouter une nouvelle salle</DialogTitle>
-          <DialogDescription>Remplissez les informations de la nouvelle salle.</DialogDescription>
+          <DialogTitle>{isEdit ? "Modifier la salle" : "Ajouter une nouvelle salle"}</DialogTitle>
+          <DialogDescription>{isEdit ? "Modifiez les informations de la salle." : "Remplissez les informations de la nouvelle salle."}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -85,7 +123,7 @@ export default function AddSalleForm() {
             <FormField control={form.control} name="batiment_id" render={({ field }) => (
               <FormItem>
                 <FormLabel>Bâtiment</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner le bâtiment" /></SelectTrigger></FormControl>
                   <SelectContent>
                     {batiments.map((b: any) => (
@@ -108,7 +146,7 @@ export default function AddSalleForm() {
               <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Type de salle" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="salle_serveur">Salle Serveur</SelectItem>
@@ -125,7 +163,7 @@ export default function AddSalleForm() {
             <FormField control={form.control} name="status" render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="active">Actif</SelectItem>
@@ -147,7 +185,7 @@ export default function AddSalleForm() {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createSalle.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Ajouter"}</Button>
             </div>
           </form>
         </Form>

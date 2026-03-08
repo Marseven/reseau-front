@@ -1,47 +1,36 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
-import DetailsModal from "@/components/ui/details-modal";
-import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddSiteForm from "@/components/forms/AddSiteForm";
-import { useSites, useUpdateSite, useDeleteSite } from "@/hooks/api";
+import { useSites, useDeleteSite } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function SitesSection() {
   const [params, setParams] = useState({ per_page: 50 });
   const { data: paginatedSites, isLoading, isError, error } = useSites(params);
-  const updateSite = useUpdateSite();
   const deleteSite = useDeleteSite();
   const { canWrite } = useRole();
+  const navigate = useNavigate();
   const [selectedItem, setSelectedItem] = useState<any>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const sites = paginatedSites?.data || [];
 
   const handleRowClick = (item: any) => {
-    setSelectedItem(item);
-    setIsDetailsOpen(true);
+    navigate(`/sites/${item.id}`);
   };
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setEditItem(item);
     setIsEditOpen(true);
-  };
-
-  const handleSave = (updatedItem: any) => {
-    updateSite.mutate(updatedItem, {
-      onSuccess: () => {
-        toast({ title: "Site mis à jour", description: "Le site a été mis à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -76,10 +65,21 @@ export default function SitesSection() {
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
         <DataTableEnhanced
           title={`${sites.length} sites`}
-          columns={["code", "name", "city", "country", "status"]}
+          columns={["code", "name", "city", "country", "zones_count", "status"]}
           data={sites}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
+          columnRenderers={{
+            zones_count: (value: any, row: any) => (
+              <Badge
+                variant="secondary"
+                className="cursor-pointer hover:bg-primary/20"
+                onClick={(e) => { e.stopPropagation(); navigate(`/sites/${row.id}`); }}
+              >
+                {value || 0}
+              </Badge>
+            ),
+          }}
           renderRowActions={canWrite ? (row: any) => (
             <Button
               variant="ghost"
@@ -93,20 +93,10 @@ export default function SitesSection() {
         />
       </QueryWrapper>
 
-      <DetailsModal
-        open={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
-        title="Détails du site"
-        data={selectedItem}
-        onEdit={() => { setIsDetailsOpen(false); setIsEditOpen(true); }}
-      />
-
-      <EditModal
+      <AddSiteForm
+        initialData={editItem}
         open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        title="Modifier le site"
-        data={selectedItem}
-        onSave={handleSave}
+        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
       />
 
       <DeleteConfirmDialog

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useCreateEquipement, useCoffrets } from "@/hooks/api";
+import { useCreateEquipement, useUpdateEquipement, useCoffrets } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -29,56 +29,90 @@ const equipmentSchema = z.object({
 
 type EquipmentFormData = z.infer<typeof equipmentSchema>;
 
-export default function AddEquipmentForm() {
-  const [open, setOpen] = useState(false);
+interface AddEquipmentFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+export default function AddEquipmentForm({ initialData, open: controlledOpen, onOpenChange }: AddEquipmentFormProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createEquipement = useCreateEquipement();
+  const updateEquipement = useUpdateEquipement();
+  const mutation = isEdit ? updateEquipement : createEquipement;
   const { data: paginatedCoffrets } = useCoffrets({ per_page: 100 });
   const coffrets = paginatedCoffrets?.data || [];
 
   const form = useForm<EquipmentFormData>({
     resolver: zodResolver(equipmentSchema),
     defaultValues: {
-      equipement_code: "",
-      name: "",
-      type: "",
-      classification: "IT",
-      modele: "",
-      fabricant: "",
-      serial_number: "",
-      coffret_id: "",
-      ip_address: "",
-      connection_type: "",
-      status: "active",
-      description: "",
+      equipement_code: "", name: "", type: "", classification: "IT",
+      modele: "", fabricant: "", serial_number: "", coffret_id: "",
+      ip_address: "", connection_type: "", status: "active", description: "",
     },
   });
+
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        equipement_code: initialData.equipement_code || "",
+        name: initialData.name || "",
+        type: initialData.type || "",
+        classification: initialData.classification || "IT",
+        modele: initialData.modele || "",
+        fabricant: initialData.fabricant || "",
+        serial_number: initialData.serial_number || "",
+        coffret_id: initialData.coffret_id ? String(initialData.coffret_id) : "",
+        ip_address: initialData.ip_address || "",
+        connection_type: initialData.connection_type || "",
+        status: initialData.status || "active",
+        description: initialData.description || "",
+      });
+    }
+  }, [initialData, open]);
 
   const onSubmit = (data: EquipmentFormData) => {
     const payload: any = { ...data };
     if (payload.coffret_id) payload.coffret_id = Number(payload.coffret_id);
     else delete payload.coffret_id;
 
-    createEquipement.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Équipement ajouté", description: "L'équipement a été ajouté avec succès" });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updateEquipement.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Équipement mis à jour", description: "L'équipement a été mis à jour avec succès" });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createEquipement.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Équipement ajouté", description: "L'équipement a été ajouté avec succès" });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter équipement
-        </Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter équipement
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Ajouter un nouvel équipement</DialogTitle>
+          <DialogTitle>{isEdit ? "Modifier l'équipement" : "Ajouter un nouvel équipement"}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -103,7 +137,7 @@ export default function AddEquipmentForm() {
               <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="switch">Switch</SelectItem>
@@ -120,7 +154,7 @@ export default function AddEquipmentForm() {
               <FormField control={form.control} name="classification" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Classification</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Classification" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="IT">IT</SelectItem>
@@ -160,7 +194,7 @@ export default function AddEquipmentForm() {
               <FormField control={form.control} name="coffret_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Baie</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
                     <SelectContent>
                       {coffrets.map((c: any) => (
@@ -184,7 +218,7 @@ export default function AddEquipmentForm() {
               <FormField control={form.control} name="connection_type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type connexion</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="RJ45">RJ45</SelectItem>
@@ -201,7 +235,7 @@ export default function AddEquipmentForm() {
             <FormField control={form.control} name="status" render={({ field }) => (
               <FormItem>
                 <FormLabel>Statut</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger></FormControl>
                   <SelectContent>
                     <SelectItem value="active">Actif</SelectItem>
@@ -223,7 +257,7 @@ export default function AddEquipmentForm() {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createEquipement.isPending}>Ajouter</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Ajouter"}</Button>
             </div>
           </form>
         </Form>
