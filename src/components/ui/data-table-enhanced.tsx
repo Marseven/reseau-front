@@ -68,8 +68,87 @@ const usePagination = (data: any[], initialItemsPerPage = 10) => {
   };
 };
 
+const COLUMN_LABELS: Record<string, string> = {
+  // Identifiants
+  id: "ID",
+  code: "Code",
+  name: "Nom",
+  label: "Label",
+  title: "Titre",
+  full_name: "Nom complet",
+
+  // Statuts
+  status: "Statut",
+  status_label: "Statut",
+  active_status: "Statut",
+
+  // Localisation / Hierarchie
+  site_name: "Site",
+  zone_name: "Zone",
+  batiment_name: "Batiment",
+  coffret_name: "Armoire",
+  equipement_name: "Equipement",
+  piece: "Piece",
+  address: "Adresse",
+  city: "Ville",
+  country: "Pays",
+  floor: "Etage",
+  floors_count: "Nb etages",
+  building: "Batiment",
+
+  // Equipements
+  type: "Type",
+  type_label: "Type",
+  classification: "Classification",
+  modele: "Modele",
+  fabricant: "Fabricant",
+  serial_number: "N° serie",
+  ip_address: "Adresse IP",
+  vlan: "VLAN",
+  direction_in_out: "Direction",
+  description: "Description",
+
+  // Ports
+  port_label: "Label port",
+  port_type: "Type",
+  speed: "Debit",
+  poe_enabled: "PoE",
+  device_name: "Appareil",
+
+  // Liaisons
+  media: "Media",
+  from: "De",
+  to: "Vers",
+  length: "Longueur",
+
+  // Systems
+  vendor: "Fabricant",
+  endpoint: "Endpoint",
+  monitored_scope: "Perimetre",
+
+  // VLANs
+  vlan_id: "ID VLAN",
+  network: "Reseau",
+  gateway: "Passerelle",
+
+  // Maintenances
+  priority_label: "Priorite",
+  scheduled_date: "Date planifiee",
+  technicien_name: "Technicien",
+
+  // Change Requests
+  requester_name: "Demandeur",
+  intervention_date_label: "Date intervention",
+
+  // Users
+  email: "Email",
+  role: "Role",
+  username: "Identifiant",
+  phone: "Telephone",
+};
+
 const formatColumnHeader = (col: string): string =>
-  col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ');
+  COLUMN_LABELS[col] || col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' ');
 
 export default function DataTableEnhanced({
   title,
