@@ -222,7 +222,10 @@ export default function ArmoiresSection() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestion des Baies</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-foreground">Gestion des Baies</h2>
+            {canWrite && <AddArmoireForm />}
+          </div>
           <div className="text-sm text-muted-foreground mt-1">
             Coffrets, équipements, ports, liaisons et systèmes
           </div>
@@ -247,7 +250,6 @@ export default function ArmoiresSection() {
               CSV
             </Button>
           )}
-          {canWrite && <AddArmoireForm />}
         </div>
       </div>
 

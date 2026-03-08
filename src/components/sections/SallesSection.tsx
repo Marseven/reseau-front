@@ -65,14 +65,14 @@ export default function SallesSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div>
+        <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-foreground">Gestion des Salles</h2>
-          <div className="text-sm text-muted-foreground mt-1">
-            Salles au sein des bâtiments
-          </div>
+          {canWrite && <AddSalleForm />}
         </div>
-        {canWrite && <AddSalleForm />}
+        <div className="text-sm text-muted-foreground mt-1">
+          Salles au sein des bâtiments
+        </div>
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

@@ -57,14 +57,14 @@ export default function ZonesSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div>
+        <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-foreground">Gestion des Zones</h2>
-          <div className="text-sm text-muted-foreground mt-1">
-            Zones et bâtiments au sein des sites
-          </div>
+          {canWrite && <AddZoneForm />}
         </div>
-        {canWrite && <AddZoneForm />}
+        <div className="text-sm text-muted-foreground mt-1">
+          Zones et bâtiments au sein des sites
+        </div>
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

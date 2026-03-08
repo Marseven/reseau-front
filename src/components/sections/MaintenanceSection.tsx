@@ -74,14 +74,14 @@ export default function MaintenanceSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div>
+        <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold text-foreground">Gestion de la Maintenance</h2>
-          <div className="text-sm text-muted-foreground mt-1">
-            Planification et suivi des interventions techniques
-          </div>
+          {canWrite && <AddMaintenanceForm />}
         </div>
-        {canWrite && <AddMaintenanceForm />}
+        <div className="text-sm text-muted-foreground mt-1">
+          Planification et suivi des interventions techniques
+        </div>
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

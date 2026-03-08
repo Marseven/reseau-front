@@ -71,23 +71,23 @@ export default function PortsSection() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Gestion des Ports</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl font-bold text-foreground">Gestion des Ports</h2>
+            {canWrite && <AddPortForm />}
+          </div>
           <div className="text-sm text-muted-foreground mt-1">
             Configuration et surveillance des ports réseau
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          {canWrite && (
-            <Button variant="outline" size="sm" disabled={exportCsv.isPending} onClick={() => exportCsv.mutate(undefined, {
-              onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
-              onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
-            })}>
-              {exportCsv.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
-              CSV
-            </Button>
-          )}
-          {canWrite && <AddPortForm />}
-        </div>
+        {canWrite && (
+          <Button variant="outline" size="sm" disabled={exportCsv.isPending} onClick={() => exportCsv.mutate(undefined, {
+            onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
+            onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
+          })}>
+            {exportCsv.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
+            CSV
+          </Button>
+        )}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
