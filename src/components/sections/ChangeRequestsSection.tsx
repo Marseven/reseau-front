@@ -7,6 +7,7 @@ import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
 import DetailsModal from "@/components/ui/details-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
+import AddChangeRequestForm from "@/components/forms/AddChangeRequestForm";
 import { useChangeRequests, useReviewChangeRequest, useDeleteChangeRequest } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
@@ -32,7 +33,7 @@ export default function ChangeRequestsSection() {
   const { data: paginatedData, isLoading, isError, error } = useChangeRequests(params);
   const reviewChangeRequest = useReviewChangeRequest();
   const deleteChangeRequest = useDeleteChangeRequest();
-  const { isAdmin } = useRole();
+  const { isAdmin, canPropose } = useRole();
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -100,15 +101,18 @@ export default function ChangeRequestsSection() {
   }));
 
   const canReview = (row: any) => isAdmin && ['en_attente', 'en_revision'].includes(row.status);
-  const canDelete = (row: any) => row.status === 'en_attente';
+  const canDeleteRow = (row: any) => isAdmin || row.status === 'en_attente';
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">Demandes de modification</h2>
-        <div className="text-sm text-muted-foreground mt-1">
-          Validation des demandes de modification sur les baies
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Demandes de modification</h2>
+          <div className="text-sm text-muted-foreground mt-1">
+            Validation des demandes de modification sur les baies
+          </div>
         </div>
+        {canPropose && <AddChangeRequestForm />}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
@@ -158,7 +162,7 @@ export default function ChangeRequestsSection() {
                   </Button>
                 </>
               )}
-              {canDelete(row) && (
+              {canDeleteRow(row) && (
                 <Button
                   variant="ghost"
                   size="sm"

@@ -52,14 +52,14 @@ export default function SitesSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div>
           <h2 className="text-2xl font-bold text-foreground">Gestion des Sites</h2>
-          {canWrite && <AddSiteForm />}
+          <div className="text-sm text-muted-foreground mt-1">
+            Sites géographiques et emplacements
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground mt-1">
-          Sites géographiques et emplacements
-        </div>
+        {canWrite && <AddSiteForm />}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

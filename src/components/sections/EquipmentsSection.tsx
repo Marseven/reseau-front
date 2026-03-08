@@ -66,10 +66,7 @@ export default function EquipmentsSection() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-foreground">Équipements</h2>
-            {canWrite && <AddEquipmentForm />}
-          </div>
+          <h2 className="text-2xl font-bold text-foreground">Équipements</h2>
           <div className="text-sm text-muted-foreground mt-1">
             Gestion des équipements réseau et de leurs connexions
           </div>
@@ -90,6 +87,7 @@ export default function EquipmentsSection() {
               CSV
             </Button>
           )}
+          {canWrite && <AddEquipmentForm />}
         </div>
       </div>
 

@@ -57,14 +57,14 @@ export default function BatimentsSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div>
           <h2 className="text-2xl font-bold text-foreground">Gestion des Bâtiments</h2>
-          {canWrite && <AddBatimentForm />}
+          <div className="text-sm text-muted-foreground mt-1">
+            Bâtiments au sein des zones
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground mt-1">
-          Bâtiments au sein des zones
-        </div>
+        {canWrite && <AddBatimentForm />}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>

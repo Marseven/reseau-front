@@ -8,11 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateChangeRequest } from "@/hooks/api";
+import { useCreateChangeRequest, useCoffrets } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
-import { ClipboardEdit } from "lucide-react";
+import { ClipboardEdit, Plus } from "lucide-react";
 
 const changeRequestSchema = z.object({
+  coffret_id: z.string().min(1, "La baie est requise"),
   type: z.string().min(1, "Le type est requis"),
   description: z.string().min(10, "La description doit contenir au moins 10 caractères"),
   justification: z.string().min(10, "La justification doit contenir au moins 10 caractères"),
@@ -22,8 +23,8 @@ const changeRequestSchema = z.object({
 type ChangeRequestFormData = z.infer<typeof changeRequestSchema>;
 
 interface AddChangeRequestFormProps {
-  coffretId: number;
-  coffretName: string;
+  coffretId?: number;
+  coffretName?: string;
 }
 
 export default function AddChangeRequestForm({ coffretId, coffretName }: AddChangeRequestFormProps) {
@@ -31,10 +32,14 @@ export default function AddChangeRequestForm({ coffretId, coffretName }: AddChan
   const createChangeRequest = useCreateChangeRequest();
   const photoBeforeRef = useRef<HTMLInputElement>(null);
   const photoAfterRef = useRef<HTMLInputElement>(null);
+  const coffretsQuery = useCoffrets({ per_page: 200 });
+  const coffrets = coffretsQuery.data?.data || [];
+  const isStandalone = !coffretId;
 
   const form = useForm<ChangeRequestFormData>({
     resolver: zodResolver(changeRequestSchema),
     defaultValues: {
+      coffret_id: coffretId ? String(coffretId) : "",
       type: "",
       description: "",
       justification: "",
@@ -44,7 +49,7 @@ export default function AddChangeRequestForm({ coffretId, coffretName }: AddChan
 
   const onSubmit = (data: ChangeRequestFormData) => {
     const formData = new FormData();
-    formData.append('coffret_id', String(coffretId));
+    formData.append('coffret_id', data.coffret_id);
     formData.append('type', data.type);
     formData.append('description', data.description);
     formData.append('justification', data.justification);
@@ -59,8 +64,9 @@ export default function AddChangeRequestForm({ coffretId, coffretName }: AddChan
 
     createChangeRequest.mutate(formData, {
       onSuccess: () => {
-        toast({ title: "Demande soumise", description: `Demande de modification pour "${coffretName}" envoyée avec succès` });
-        form.reset();
+        const label = coffretName || coffrets.find((c: any) => String(c.id) === data.coffret_id)?.name || '';
+        toast({ title: "Demande soumise", description: `Demande de modification${label ? ` pour "${label}"` : ''} envoyée avec succès` });
+        form.reset({ coffret_id: coffretId ? String(coffretId) : "", type: "", description: "", justification: "", intervention_date: "" });
         if (photoBeforeRef.current) photoBeforeRef.current.value = '';
         if (photoAfterRef.current) photoAfterRef.current.value = '';
         setOpen(false);
@@ -75,20 +81,45 @@ export default function AddChangeRequestForm({ coffretId, coffretName }: AddChan
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <ClipboardEdit className="h-4 w-4" />
-          Proposer une modification
-        </Button>
+        {isStandalone ? (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvelle demande
+          </Button>
+        ) : (
+          <Button variant="outline" className="gap-2">
+            <ClipboardEdit className="h-4 w-4" />
+            Proposer une modification
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Proposer une modification</DialogTitle>
           <DialogDescription>
-            Demande de modification pour la baie "{coffretName}".
+            {coffretName
+              ? `Demande de modification pour la baie "${coffretName}".`
+              : "Créer une nouvelle demande de modification sur une baie."}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {isStandalone && (
+              <FormField control={form.control} name="coffret_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Baie</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner une baie" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                      {coffrets.map((c: any) => (
+                        <SelectItem key={c.id} value={String(c.id)}>{c.name} ({c.code})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            )}
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>

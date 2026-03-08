@@ -57,14 +57,14 @@ export default function VlansSection() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between">
+        <div>
           <h2 className="text-2xl font-bold text-foreground">Gestion des VLANs</h2>
-          {canWrite && <AddVlanForm />}
+          <div className="text-sm text-muted-foreground mt-1">
+            VLANs et segmentation réseau
+          </div>
         </div>
-        <div className="text-sm text-muted-foreground mt-1">
-          VLANs et segmentation réseau
-        </div>
+        {canWrite && <AddVlanForm />}
       </div>
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
