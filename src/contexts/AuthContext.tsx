@@ -31,25 +31,39 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  // Single source of truth: Redux (persisted via redux-persist)
   const reduxUser = useSelector((state: RootState) => state.user.user);
   const reduxToken = useSelector((state: RootState) => state.user.token);
   const reduxIsLogin = useSelector((state: RootState) => state.user.isLogin);
 
-  // Track rehydration via persistor directly (not _persist selector)
   const [loading, setLoading] = useState(() => !persistor.getState().bootstrapped);
   const dispatch = useDispatch();
+
+  // DEBUG: trace auth state on every render
+  console.log('[AUTH DEBUG]', {
+    loading,
+    bootstrapped: persistor.getState().bootstrapped,
+    reduxIsLogin,
+    reduxToken: reduxToken ? reduxToken.substring(0, 10) + '...' : null,
+    reduxUser: reduxUser ? { id: (reduxUser as any).id, role: (reduxUser as any).role } : null,
+    localStorage: (() => {
+      try {
+        const raw = localStorage.getItem('persist:root');
+        if (!raw) return 'EMPTY';
+        const parsed = JSON.parse(raw);
+        const userState = JSON.parse(parsed.user);
+        return { isLogin: userState.isLogin, hasUser: !!userState.user, hasToken: !!userState.token };
+      } catch { return 'PARSE_ERROR'; }
+    })(),
+  });
 
   useEffect(() => {
     if (!loading) return;
 
-    // Already bootstrapped by the time this effect runs
     if (persistor.getState().bootstrapped) {
       setLoading(false);
       return;
     }
 
-    // Subscribe and wait for bootstrapping
     const unsubscribe = persistor.subscribe(() => {
       if (persistor.getState().bootstrapped) {
         setLoading(false);
@@ -60,7 +74,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return unsubscribe;
   }, [loading]);
 
-  // Derive auth state directly from Redux — no local state to sync
   const user = (reduxUser as User | null);
   const isAuthenticated = !!(reduxIsLogin && reduxToken);
 
