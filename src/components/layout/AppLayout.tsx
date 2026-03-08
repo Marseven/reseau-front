@@ -5,7 +5,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useNotificationPermission } from "@/hooks/useNotificationPermission";
 import Sidebar, { MobileHeader } from "@/components/layout/Sidebar";
 import OfflineBanner from "@/components/layout/OfflineBanner";
-import PwaUpdatePrompt from "@/components/layout/PwaUpdatePrompt";
 import QrScanner from "@/components/qrcode/QrScanner";
 import { Button } from "@/components/ui/button";
 import { ScanLine } from "lucide-react";
@@ -122,7 +121,6 @@ export default function AppLayout() {
         onOpenChange={setScannerOpen}
         onScan={handleQrScan}
       />
-      <PwaUpdatePrompt />
     </>
   );
 }

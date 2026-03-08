@@ -38,24 +38,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(() => !persistor.getState().bootstrapped);
   const dispatch = useDispatch();
 
-  // DEBUG: trace auth state on every render
-  console.log('[AUTH DEBUG]', {
-    loading,
-    bootstrapped: persistor.getState().bootstrapped,
-    reduxIsLogin,
-    reduxToken: reduxToken ? reduxToken.substring(0, 10) + '...' : null,
-    reduxUser: reduxUser ? { id: (reduxUser as any).id, role: (reduxUser as any).role } : null,
-    localStorage: (() => {
-      try {
-        const raw = localStorage.getItem('persist:root');
-        if (!raw) return 'EMPTY';
-        const parsed = JSON.parse(raw);
-        const userState = JSON.parse(parsed.user);
-        return { isLogin: userState.isLogin, hasUser: !!userState.user, hasToken: !!userState.token };
-      } catch { return 'PARSE_ERROR'; }
-    })(),
-  });
-
   useEffect(() => {
     if (!loading) return;
 

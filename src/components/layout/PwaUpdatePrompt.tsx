@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -8,12 +9,23 @@ export default function PwaUpdatePrompt() {
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_swUrl, registration) {
-      // Check for updates every hour
+      // Check for updates every 5 minutes
       if (registration) {
-        setInterval(() => registration.update(), 60 * 60 * 1000);
+        setInterval(() => registration.update(), 5 * 60 * 1000);
       }
     },
   });
+
+  // Force reload when a new SW takes control (handles the stale-cache problem)
+  useEffect(() => {
+    const handleControllerChange = () => {
+      window.location.reload();
+    };
+    navigator.serviceWorker?.addEventListener("controllerchange", handleControllerChange);
+    return () => {
+      navigator.serviceWorker?.removeEventListener("controllerchange", handleControllerChange);
+    };
+  }, []);
 
   if (!needRefresh) return null;
 

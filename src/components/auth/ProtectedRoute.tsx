@@ -6,8 +6,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
 
-  console.log('[PROTECTED ROUTE]', { loading, isAuthenticated, path: location.pathname });
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -17,7 +15,6 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!isAuthenticated) {
-    console.log('[PROTECTED ROUTE] → Redirecting to /login');
     return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 

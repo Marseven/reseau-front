@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AppLayout from "./components/layout/AppLayout";
+import PwaUpdatePrompt from "./components/layout/PwaUpdatePrompt";
 import SectionSkeleton from "./components/ui/section-skeleton";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
+          <PwaUpdatePrompt />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
