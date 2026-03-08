@@ -22,3 +22,4 @@ export * from './useTopology';
 export * from './useImports';
 export * from './useAnalytics';
 export * from './useLabels';
+export * from './useProfile';

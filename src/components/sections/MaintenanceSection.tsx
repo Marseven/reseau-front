@@ -4,20 +4,19 @@ import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
 import DetailsModal from "@/components/ui/details-modal";
-import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddMaintenanceForm from "@/components/forms/AddMaintenanceForm";
-import { useMaintenances, useUpdateMaintenance, useDeleteMaintenance } from "@/hooks/api";
+import { useMaintenances, useDeleteMaintenance } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function MaintenanceSection() {
   const [params, setParams] = useState({ per_page: 50 });
   const { data: paginatedMaintenances, isLoading, isError, error } = useMaintenances(params);
-  const updateMaintenance = useUpdateMaintenance();
   const deleteMaintenance = useDeleteMaintenance();
   const { canWrite } = useRole();
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -30,18 +29,8 @@ export default function MaintenanceSection() {
   };
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setEditItem(item);
     setIsEditOpen(true);
-  };
-
-  const handleSave = (updatedItem: any) => {
-    updateMaintenance.mutate(updatedItem, {
-      onSuccess: () => {
-        toast({ title: "Maintenance mise à jour", description: "La maintenance a été mise à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -120,15 +109,13 @@ export default function MaintenanceSection() {
         onOpenChange={setIsDetailsOpen}
         title="Détails de la maintenance"
         data={selectedItem}
-        onEdit={() => { setIsDetailsOpen(false); setIsEditOpen(true); }}
+        onEdit={() => { setIsDetailsOpen(false); handleEdit(selectedItem); }}
       />
 
-      <EditModal
+      <AddMaintenanceForm
+        initialData={editItem}
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
-        title="Modifier la maintenance"
-        data={selectedItem}
-        onSave={handleSave}
       />
 
       <DeleteConfirmDialog

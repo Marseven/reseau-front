@@ -4,20 +4,19 @@ import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
 import DetailsModal from "@/components/ui/details-modal";
-import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddVlanForm from "@/components/forms/AddVlanForm";
-import { useVlans, useUpdateVlan, useDeleteVlan } from "@/hooks/api";
+import { useVlans, useDeleteVlan } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function VlansSection() {
   const [params, setParams] = useState({ per_page: 50 });
   const { data: paginatedVlans, isLoading, isError, error } = useVlans(params);
-  const updateVlan = useUpdateVlan();
   const deleteVlan = useDeleteVlan();
   const { canWrite } = useRole();
   const [selectedItem, setSelectedItem] = useState<any>(null);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -30,18 +29,8 @@ export default function VlansSection() {
   };
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setEditItem(item);
     setIsEditOpen(true);
-  };
-
-  const handleSave = (updatedItem: any) => {
-    updateVlan.mutate(updatedItem, {
-      onSuccess: () => {
-        toast({ title: "VLAN mis à jour", description: "Le VLAN a été mis à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -103,15 +92,13 @@ export default function VlansSection() {
         onOpenChange={setIsDetailsOpen}
         title="Détails du VLAN"
         data={selectedItem}
-        onEdit={() => { setIsDetailsOpen(false); setIsEditOpen(true); }}
+        onEdit={() => { setIsDetailsOpen(false); handleEdit(selectedItem); }}
       />
 
-      <EditModal
+      <AddVlanForm
+        initialData={editItem}
         open={isEditOpen}
         onOpenChange={setIsEditOpen}
-        title="Modifier le VLAN"
-        data={selectedItem}
-        onSave={handleSave}
       />
 
       <DeleteConfirmDialog

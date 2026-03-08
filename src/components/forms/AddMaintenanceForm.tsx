@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useCreateMaintenance, useUsers, useSites } from "@/hooks/api";
+import { useCreateMaintenance, useUpdateMaintenance, useUsers, useSites } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 
@@ -26,9 +26,21 @@ const maintenanceSchema = z.object({
 
 type MaintenanceFormData = z.infer<typeof maintenanceSchema>;
 
-export default function AddMaintenanceForm() {
-  const [open, setOpen] = useState(false);
+interface AddMaintenanceFormProps {
+  initialData?: any;
+  open?: boolean;
+  onOpenChange?: (v: boolean) => void;
+}
+
+const AddMaintenanceForm = ({ initialData, open: controlledOpen, onOpenChange }: AddMaintenanceFormProps = {}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isEdit = !!initialData;
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
+
   const createMaintenance = useCreateMaintenance();
+  const updateMaintenance = useUpdateMaintenance();
+  const mutation = isEdit ? updateMaintenance : createMaintenance;
   const { data: paginatedUsers } = useUsers({ per_page: 100 });
   const { data: paginatedSites } = useSites({ per_page: 100 });
   const users = paginatedUsers?.data || [];
@@ -44,6 +56,22 @@ export default function AddMaintenanceForm() {
     }
   });
 
+  useEffect(() => {
+    if (initialData && open) {
+      form.reset({
+        code: initialData.code || "",
+        title: initialData.title || "",
+        description: initialData.description || "",
+        type: initialData.type || "",
+        priority: initialData.priority || "moyenne",
+        technicien_id: initialData.technicien_id ? String(initialData.technicien_id) : "",
+        site_id: initialData.site_id ? String(initialData.site_id) : "",
+        scheduled_date: initialData.scheduled_date || "",
+        scheduled_time: initialData.scheduled_time || "",
+      });
+    }
+  }, [initialData, open]);
+
   const onSubmit = (data: MaintenanceFormData) => {
     const payload: any = { ...data };
     payload.technicien_id = Number(payload.technicien_id);
@@ -51,25 +79,39 @@ export default function AddMaintenanceForm() {
     else delete payload.site_id;
     if (!payload.scheduled_time) delete payload.scheduled_time;
 
-    createMaintenance.mutate(payload, {
-      onSuccess: () => {
-        toast({ title: "Maintenance planifiée", description: `La maintenance ${data.title} a été planifiée avec succès` });
-        form.reset();
-        setOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la planification", variant: "destructive" }),
-    });
+    if (isEdit) {
+      updateMaintenance.mutate({ id: initialData.id, ...payload }, {
+        onSuccess: () => {
+          toast({ title: "Maintenance mise à jour", description: `La maintenance ${data.title} a été mise à jour avec succès` });
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
+      });
+    } else {
+      createMaintenance.mutate(payload, {
+        onSuccess: () => {
+          toast({ title: "Maintenance planifiée", description: `La maintenance ${data.title} a été planifiée avec succès` });
+          form.reset();
+          setOpen(false);
+        },
+        onError: () => toast({ title: "Erreur", description: "Erreur lors de la planification", variant: "destructive" }),
+      });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button><Plus className="mr-2 h-4 w-4" />Planifier maintenance</Button>
-      </DialogTrigger>
+      {!isEdit && (
+        <DialogTrigger asChild>
+          <Button><Plus className="mr-2 h-4 w-4" />Planifier maintenance</Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Planifier une maintenance</DialogTitle>
-          <DialogDescription>Remplissez les informations de la nouvelle intervention.</DialogDescription>
+          <DialogTitle>{isEdit ? "Modifier la maintenance" : "Planifier une maintenance"}</DialogTitle>
+          <DialogDescription>
+            {isEdit ? "Modifiez les informations de la maintenance." : "Remplissez les informations de la nouvelle intervention."}
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -94,7 +136,7 @@ export default function AddMaintenanceForm() {
               <FormField control={form.control} name="type" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="preventive">Préventive</SelectItem>
@@ -109,7 +151,7 @@ export default function AddMaintenanceForm() {
               <FormField control={form.control} name="priority" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Priorité</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Priorité" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="basse">Basse</SelectItem>
@@ -144,7 +186,7 @@ export default function AddMaintenanceForm() {
               <FormField control={form.control} name="technicien_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Technicien</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
                     <SelectContent>
                       {technicians.map((u: any) => (
@@ -158,7 +200,7 @@ export default function AddMaintenanceForm() {
               <FormField control={form.control} name="site_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Site (optionnel)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
                     <SelectContent>
                       {sites.map((s: any) => (
@@ -181,11 +223,13 @@ export default function AddMaintenanceForm() {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>
-              <Button type="submit" disabled={createMaintenance.isPending}>Planifier</Button>
+              <Button type="submit" disabled={mutation.isPending}>{isEdit ? "Enregistrer" : "Planifier"}</Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
   );
-}
+};
+
+export default AddMaintenanceForm;
