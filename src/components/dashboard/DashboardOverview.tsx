@@ -47,14 +47,14 @@ export default function DashboardOverview() {
             Tableau de bord
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Vue d'ensemble de l'infrastructure reseau
+            Vue d'ensemble de l'infrastructure réseau
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground bg-card border border-border rounded-lg px-3 py-2">
           <Clock className="h-3.5 w-3.5" />
           <div className="flex items-center gap-2">
             <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--status-up))] animate-pulse" />
-            <span>Synchro temps reel</span>
+            <span>Synchro temps réel</span>
           </div>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function DashboardOverview() {
 
         {/* Row 2 : 4 stats secondaires */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
-          <MiniStat icon={Building2} label="Batiments" value={stats?.batiments?.total ?? 0} />
+          <MiniStat icon={Building2} label="Bâtiments" value={stats?.batiments?.total ?? 0} />
           <MiniStat icon={DoorOpen} label="Salles" value={stats?.salles?.total ?? 0} />
           <MiniStat icon={Box} label="Coffrets" value={stats?.coffrets?.total ?? 0} />
           <MiniStat icon={Network} label="VLANs" value={stats?.vlans?.total ?? 0} />
@@ -187,7 +187,7 @@ export default function DashboardOverview() {
                   <div className="flex flex-col items-center -mt-2">
                     <span className="text-2xl font-bold font-mono">{portUtil.utilization_percent}%</span>
                     <span className="text-[11px] text-muted-foreground">
-                      {portUtil.connected} / {portUtil.total} ports connectes
+                      {portUtil.connected} / {portUtil.total} ports connectés
                     </span>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export default function DashboardOverview() {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-[200px] text-sm text-muted-foreground">
-                Aucune donnee de maintenance
+                Aucune donnée de maintenance
               </div>
             )}
           </CardContent>
@@ -282,7 +282,7 @@ function MaintenanceCard({ planifiee, enCours, terminee, total }: { planifiee: n
         <div className="flex items-center justify-between text-[11px]">
           <span className="flex items-center gap-1.5">
             <AlertTriangle className="h-3 w-3 text-amber-500" />
-            <span className="text-muted-foreground">Planifiees</span>
+            <span className="text-muted-foreground">Planifiées</span>
           </span>
           <span className="font-mono font-semibold">{planifiee}</span>
         </div>
@@ -296,7 +296,7 @@ function MaintenanceCard({ planifiee, enCours, terminee, total }: { planifiee: n
         <div className="flex items-center justify-between text-[11px]">
           <span className="flex items-center gap-1.5">
             <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-            <span className="text-muted-foreground">Terminees</span>
+            <span className="text-muted-foreground">Terminées</span>
           </span>
           <span className="font-mono font-semibold">{terminee}</span>
         </div>
@@ -308,7 +308,7 @@ function MaintenanceCard({ planifiee, enCours, terminee, total }: { planifiee: n
 function EmptyChart() {
   return (
     <div className="flex items-center justify-center h-[180px] text-sm text-muted-foreground">
-      Aucune donnee disponible
+      Aucune donnée disponible
     </div>
   );
 }

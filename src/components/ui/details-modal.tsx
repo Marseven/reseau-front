@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./dialog";
 import { Button } from "./button";
-import { Edit, X } from "lucide-react";
+import { Edit } from "lucide-react";
 import StatusBadge from "../dashboard/StatusBadge";
 
 interface DetailsModalProps {
@@ -57,23 +57,14 @@ export default function DetailsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pr-6">
             <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
-            <div className="flex items-center gap-2">
-              {onEdit && (
-                <Button variant="outline" size="sm" onClick={onEdit}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Modifier
-                </Button>
-              )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => onOpenChange(false)}
-              >
-                <X className="h-4 w-4" />
+            {onEdit && (
+              <Button variant="outline" size="sm" onClick={onEdit}>
+                <Edit className="h-4 w-4 mr-2" />
+                Modifier
               </Button>
-            </div>
+            )}
           </div>
         </DialogHeader>
         

@@ -12,19 +12,19 @@ const statusConfig = {
     bg: "bg-[hsl(var(--status-up))]/10",
     text: "text-[hsl(var(--status-up))]",
     dot: "bg-[hsl(var(--status-up))]",
-    label: "UP"
+    label: "En ligne"
   },
   down: {
     bg: "bg-[hsl(var(--status-down))]/10",
     text: "text-[hsl(var(--status-down))]",
     dot: "bg-[hsl(var(--status-down))]",
-    label: "DOWN"
+    label: "Hors ligne"
   },
   warn: {
     bg: "bg-[hsl(var(--status-warn))]/10",
     text: "text-[hsl(var(--status-warn))]",
     dot: "bg-[hsl(var(--status-warn))]",
-    label: "WARN"
+    label: "Alerte"
   },
   maintenance: {
     bg: "bg-[hsl(var(--status-warn))]/10",

@@ -94,12 +94,12 @@ export default function CartographieSection() {
         <div>
           <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
           <div className="text-sm text-muted-foreground mt-1">
-            Vue arborescente, carte interactive et topologie reseau
+            Vue arborescente, carte interactive et topologie réseau
           </div>
         </div>
         {canWrite && (
           <Button variant="outline" size="sm" disabled={exportPdf.isPending} onClick={() => exportPdf.mutate(undefined, {
-            onSuccess: () => toast({ title: "Export termine", description: "Le PDF a ete telecharge" }),
+            onSuccess: () => toast({ title: "Export terminé", description: "Le PDF a été téléchargé" }),
             onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
           })}>
             {exportPdf.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
@@ -112,7 +112,7 @@ export default function CartographieSection() {
         <TabsList>
           <TabsTrigger value="arborescence">Arborescence</TabsTrigger>
           <TabsTrigger value="carte">Carte</TabsTrigger>
-          <TabsTrigger value="topologie">Topologie reseau</TabsTrigger>
+          <TabsTrigger value="topologie">Topologie réseau</TabsTrigger>
         </TabsList>
 
         <TabsContent value="arborescence" className="mt-4">
@@ -124,7 +124,7 @@ export default function CartographieSection() {
           ) : (
             <div className="border rounded-lg p-4 bg-card overflow-x-auto">
               {sites.length === 0 ? (
-                <p className="text-muted-foreground text-center py-10">Aucun site trouve</p>
+                <p className="text-muted-foreground text-center py-10">Aucun site trouvé</p>
               ) : (
                 sites.map((site: any) => {
                   const siteZones = zones.filter((z: any) => z.site_id === site.id);

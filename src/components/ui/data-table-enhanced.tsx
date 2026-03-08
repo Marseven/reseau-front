@@ -85,24 +85,24 @@ const COLUMN_LABELS: Record<string, string> = {
   // Localisation / Hierarchie
   site_name: "Site",
   zone_name: "Zone",
-  batiment_name: "Batiment",
+  batiment_name: "Bâtiment",
   coffret_name: "Armoire",
   equipement_name: "Equipement",
-  piece: "Piece",
+  piece: "Pièce",
   address: "Adresse",
   city: "Ville",
   country: "Pays",
-  floor: "Etage",
-  floors_count: "Nb etages",
-  building: "Batiment",
+  floor: "Étage",
+  floors_count: "Nb étages",
+  building: "Bâtiment",
 
   // Equipements
   type: "Type",
   type_label: "Type",
   classification: "Classification",
-  modele: "Modele",
+  modele: "Modèle",
   fabricant: "Fabricant",
-  serial_number: "N° serie",
+  serial_number: "N° série",
   ip_address: "Adresse IP",
   vlan: "VLAN",
   direction_in_out: "Direction",
@@ -111,7 +111,7 @@ const COLUMN_LABELS: Record<string, string> = {
   // Ports
   port_label: "Label port",
   port_type: "Type",
-  speed: "Debit",
+  speed: "Débit",
   poe_enabled: "PoE",
   device_name: "Appareil",
 
@@ -124,16 +124,16 @@ const COLUMN_LABELS: Record<string, string> = {
   // Systems
   vendor: "Fabricant",
   endpoint: "Endpoint",
-  monitored_scope: "Perimetre",
+  monitored_scope: "Périmètre",
 
   // VLANs
   vlan_id: "ID VLAN",
-  network: "Reseau",
+  network: "Réseau",
   gateway: "Passerelle",
 
   // Maintenances
-  priority_label: "Priorite",
-  scheduled_date: "Date planifiee",
+  priority_label: "Priorité",
+  scheduled_date: "Date planifiée",
   technicien_name: "Technicien",
 
   // Change Requests
@@ -144,7 +144,7 @@ const COLUMN_LABELS: Record<string, string> = {
   email: "Email",
   role: "Role",
   username: "Identifiant",
-  phone: "Telephone",
+  phone: "Téléphone",
 };
 
 const formatColumnHeader = (col: string): string =>
@@ -368,7 +368,7 @@ export default function DataTableEnhanced({
                   colSpan={columns.length + ((onRowClick || onEdit || renderRowActions) ? 1 : 0)}
                   className="h-32 text-center text-muted-foreground"
                 >
-                  Aucun element a afficher
+                  Aucun élément à afficher
                 </TableCell>
               </TableRow>
             ) : (

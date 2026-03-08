@@ -59,8 +59,8 @@ export function PaginationEnhanced({
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
         <span>
           {totalItems === 0
-            ? "Aucun element"
-            : `Affichage de ${startItem} a ${endItem} sur ${totalItems} elements`}
+            ? "Aucun élément"
+            : `Affichage de ${startItem} à ${endItem} sur ${totalItems} éléments`}
         </span>
         <div className="flex items-center gap-2">
           <span>Par page :</span>
@@ -92,7 +92,7 @@ export function PaginationEnhanced({
             className="gap-1"
           >
             <ChevronLeft className="h-4 w-4" />
-            Precedent
+            Précédent
           </Button>
 
           <div className="flex items-center gap-1">

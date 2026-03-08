@@ -24,18 +24,18 @@ export default function ProfileSection() {
 
   const actionLabels: Record<string, { label: string; color: string }> = {
     login: { label: "Connexion", color: "bg-green-100 text-green-800" },
-    logout: { label: "Deconnexion", color: "bg-gray-100 text-gray-800" },
-    login_failed: { label: "Echec connexion", color: "bg-red-100 text-red-800" },
-    "2fa_verified": { label: "2FA verifie", color: "bg-blue-100 text-blue-800" },
+    logout: { label: "Déconnexion", color: "bg-gray-100 text-gray-800" },
+    login_failed: { label: "Échec connexion", color: "bg-red-100 text-red-800" },
+    "2fa_verified": { label: "2FA vérifié", color: "bg-blue-100 text-blue-800" },
   };
 
   const fields = [
     { icon: User, label: "Nom complet", value: `${user.name} ${user.surname || ''}`.trim() },
     { icon: User, label: "Nom d'utilisateur", value: user.username },
     { icon: Mail, label: "Email", value: user.email },
-    { icon: Phone, label: "Telephone", value: user.phone || "Non renseigne" },
-    { icon: Shield, label: "Role", value: roleLabels[user.role] || user.role },
-    { icon: MapPin, label: "Site", value: user.site?.name || "Non affecte" },
+    { icon: Phone, label: "Téléphone", value: user.phone || "Non renseigné" },
+    { icon: Shield, label: "Rôle", value: roleLabels[user.role] || user.role },
+    { icon: MapPin, label: "Site", value: user.site?.name || "Non affecté" },
     { icon: Calendar, label: "Membre depuis", value: new Date(user.created_at).toLocaleDateString('fr-FR') },
   ];
 
@@ -95,7 +95,7 @@ export default function ProfileSection() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Historique des connexions</CardTitle>
-              <CardDescription>Vos dernieres activites de connexion</CardDescription>
+              <CardDescription>Vos dernières activités de connexion</CardDescription>
             </CardHeader>
             <CardContent>
               {history.length === 0 ? (
@@ -107,7 +107,7 @@ export default function ProfileSection() {
                       <tr className="border-b text-left text-muted-foreground">
                         <th className="pb-2 pr-4">Date</th>
                         <th className="pb-2 pr-4">Action</th>
-                        <th className="pb-2 pr-4">Methode</th>
+                        <th className="pb-2 pr-4">Méthode</th>
                         <th className="pb-2 pr-4">Adresse IP</th>
                         <th className="pb-2">Navigateur</th>
                       </tr>

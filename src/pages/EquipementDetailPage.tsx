@@ -169,9 +169,9 @@ export default function EquipementDetailPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
-                      <th className="pb-2 pr-4">Label</th>
+                      <th className="pb-2 pr-4">Libellé</th>
                       <th className="pb-2 pr-4">Type</th>
-                      <th className="pb-2 pr-4">Speed</th>
+                      <th className="pb-2 pr-4">Débit</th>
                       <th className="pb-2 pr-4">VLAN</th>
                       <th className="pb-2 pr-4">PoE</th>
                       <th className="pb-2">Statut</th>

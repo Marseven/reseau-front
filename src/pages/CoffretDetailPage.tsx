@@ -29,7 +29,7 @@ export default function CoffretDetailPage() {
     const file = e.target.files?.[0];
     if (!file || !coffret) return;
     uploadPhoto.mutate({ id: coffret.id, photo: file }, {
-      onSuccess: () => toast({ title: "Photo mise a jour", description: "La photo a ete ajoutee" }),
+      onSuccess: () => toast({ title: "Photo mise à jour", description: "La photo a été ajoutée" }),
       onError: () => toast({ title: "Erreur", description: "Erreur lors de l'upload", variant: "destructive" }),
     });
   };
@@ -37,7 +37,7 @@ export default function CoffretDetailPage() {
   const handleDeletePhoto = () => {
     if (!coffret) return;
     deletePhoto.mutate(coffret.id, {
-      onSuccess: () => toast({ title: "Photo supprimee", description: "La photo a ete retiree" }),
+      onSuccess: () => toast({ title: "Photo supprimée", description: "La photo a été retirée" }),
       onError: () => toast({ title: "Erreur", description: "Erreur lors de la suppression", variant: "destructive" }),
     });
   };
