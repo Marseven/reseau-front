@@ -12,7 +12,7 @@ import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function SallesSection() {
-  const [params, setParams] = useState({ per_page: 50 });
+  const [params] = useState({ per_page: 50 });
   const { data: paginatedSalles, isLoading, isError, error } = useSalles(params);
   const deleteSalle = useDeleteSalle();
   const { canWrite } = useRole();

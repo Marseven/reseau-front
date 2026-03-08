@@ -11,7 +11,7 @@ import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function MaintenanceSection() {
-  const [params, setParams] = useState({ per_page: 50 });
+  const [params] = useState({ per_page: 50 });
   const { data: paginatedMaintenances, isLoading, isError, error } = useMaintenances(params);
   const deleteMaintenance = useDeleteMaintenance();
   const { canWrite } = useRole();

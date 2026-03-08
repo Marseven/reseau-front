@@ -12,7 +12,7 @@ import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function SitesSection() {
-  const [params, setParams] = useState({ per_page: 50 });
+  const [params] = useState({ per_page: 50 });
   const { data: paginatedSites, isLoading, isError, error } = useSites(params);
   const deleteSite = useDeleteSite();
   const { canWrite } = useRole();

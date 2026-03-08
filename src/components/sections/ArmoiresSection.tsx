@@ -401,6 +401,13 @@ export default function ArmoiresSection() {
           onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
         />
       )}
+      {editItem?._editType === 'systeme' && (
+        <AddSystemeForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

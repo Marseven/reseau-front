@@ -12,7 +12,7 @@ import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
 
 export default function ZonesSection() {
-  const [params, setParams] = useState({ per_page: 50 });
+  const [params] = useState({ per_page: 50 });
   const { data: paginatedZones, isLoading, isError, error } = useZones(params);
   const deleteZone = useDeleteZone();
   const { canWrite } = useRole();

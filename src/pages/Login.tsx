@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/axios";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +130,15 @@ function NetworkCanvas() {
 
 /* ── Login Page ── */
 const Login = () => {
+  const { data: publicStats } = useQuery({
+    queryKey: ['stats', 'public'],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: { coffrets: number; equipements: number; uptime: number } }>('/stats/public');
+      return data.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -286,9 +297,9 @@ const Login = () => {
               className={`mt-10 flex gap-8 transition-all duration-700 delay-500 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
             >
               {[
-                { value: "36", label: "Armoires" },
-                { value: "248", label: "Équipements" },
-                { value: "99.7%", label: "Uptime" },
+                { value: publicStats?.coffrets ?? "—", label: "Armoires" },
+                { value: publicStats?.equipements ?? "—", label: "Équipements" },
+                { value: publicStats ? `${publicStats.uptime}%` : "—", label: "Uptime" },
               ].map((stat) => (
                 <div key={stat.label}>
                   <p className="text-2xl font-bold text-[hsl(229,40%,70%)] font-mono">
