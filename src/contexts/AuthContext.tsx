@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { login as loginAction, logout as logoutAction } from '@/store/users';
 import type { RootState } from '@/store/store';
+import { store, persistor } from '@/store/store';
 import api from '@/axios';
 
 interface User {
@@ -30,25 +31,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  // Read auth state from Redux (persisted via redux-persist)
+  // Single source of truth: Redux (persisted via redux-persist)
   const reduxUser = useSelector((state: RootState) => state.user.user);
   const reduxToken = useSelector((state: RootState) => state.user.token);
   const reduxIsLogin = useSelector((state: RootState) => state.user.isLogin);
-  const rehydrated = useSelector((state: any) => state._persist?.rehydrated ?? false);
 
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Track rehydration via persistor directly (not _persist selector)
+  const [loading, setLoading] = useState(() => !persistor.getState().bootstrapped);
   const dispatch = useDispatch();
 
-  // Sync user from Redux after rehydration completes
   useEffect(() => {
-    if (!rehydrated) return;
+    if (!loading) return;
 
-    if (reduxIsLogin && reduxUser) {
-      setUser(reduxUser as User);
+    // Already bootstrapped by the time this effect runs
+    if (persistor.getState().bootstrapped) {
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  }, [rehydrated, reduxIsLogin, reduxUser]);
+
+    // Subscribe and wait for bootstrapping
+    const unsubscribe = persistor.subscribe(() => {
+      if (persistor.getState().bootstrapped) {
+        setLoading(false);
+        unsubscribe();
+      }
+    });
+
+    return unsubscribe;
+  }, [loading]);
+
+  // Derive auth state directly from Redux — no local state to sync
+  const user = (reduxUser as User | null);
+  const isAuthenticated = !!(reduxIsLogin && reduxToken);
 
   const login = async (email: string, password: string): Promise<LoginResult> => {
     try {
@@ -64,8 +78,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (response.data.status === 200 && response.data.data?.token) {
         const userData = response.data.data.user;
         const token = response.data.data.token;
-
-        setUser(userData);
         dispatch(loginAction({ user: userData, token }));
         return { success: true };
       }
@@ -94,8 +106,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (response.data.status === 200 && response.data.data?.token) {
         const userData = response.data.data.user;
         const token = response.data.data.token;
-
-        setUser(userData);
         dispatch(loginAction({ user: userData, token }));
         return true;
       }
@@ -110,8 +120,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await api.get('/auth/me');
       if (response.data.status === 200 && response.data.data) {
-        const userData = response.data.data;
-        setUser(userData);
+        const currentToken = store.getState().user.token;
+        if (currentToken) {
+          dispatch(loginAction({ user: response.data.data, token: currentToken }));
+        }
       }
     } catch {
       // Silently fail
@@ -124,13 +136,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch {
       // Token may already be expired
     } finally {
-      setUser(null);
       dispatch(logoutAction());
     }
   };
-
-  // Authenticated if Redux has a valid login state OR local user is set
-  const isAuthenticated = !!(reduxIsLogin && reduxToken) || !!user;
 
   return (
     <AuthContext.Provider value={{ user, login, verifyTwoFactor, refreshUser, logout, isAuthenticated, loading }}>
