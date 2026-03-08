@@ -93,11 +93,13 @@ export default function SitesSection() {
         />
       </QueryWrapper>
 
-      <AddSiteForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
-      />
+      {editItem && (
+        <AddSiteForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

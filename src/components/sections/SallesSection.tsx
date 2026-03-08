@@ -106,11 +106,13 @@ export default function SallesSection() {
         />
       </QueryWrapper>
 
-      <AddSalleForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
-      />
+      {editItem && (
+        <AddSalleForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

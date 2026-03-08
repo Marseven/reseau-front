@@ -112,11 +112,13 @@ export default function MaintenanceSection() {
         onEdit={() => { setIsDetailsOpen(false); handleEdit(selectedItem); }}
       />
 
-      <AddMaintenanceForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-      />
+      {editItem && (
+        <AddMaintenanceForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

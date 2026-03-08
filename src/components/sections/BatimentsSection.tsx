@@ -98,11 +98,13 @@ export default function BatimentsSection() {
         />
       </QueryWrapper>
 
-      <AddBatimentForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
-      />
+      {editItem && (
+        <AddBatimentForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

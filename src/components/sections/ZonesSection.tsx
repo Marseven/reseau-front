@@ -98,11 +98,13 @@ export default function ZonesSection() {
         />
       </QueryWrapper>
 
-      <AddZoneForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
-      />
+      {editItem && (
+        <AddZoneForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

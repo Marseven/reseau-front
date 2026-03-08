@@ -95,11 +95,13 @@ export default function VlansSection() {
         onEdit={() => { setIsDetailsOpen(false); handleEdit(selectedItem); }}
       />
 
-      <AddVlanForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-      />
+      {editItem && (
+        <AddVlanForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

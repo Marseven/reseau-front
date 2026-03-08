@@ -142,11 +142,13 @@ export default function EquipmentsSection() {
         />
       </QueryWrapper>
 
-      <AddEquipmentForm
-        initialData={editItem}
-        open={isEditOpen}
-        onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
-      />
+      {editItem && (
+        <AddEquipmentForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}
