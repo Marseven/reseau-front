@@ -26,8 +26,11 @@ export function useCoffret(id: number | undefined) {
 export function useCreateCoffret() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (payload: Partial<Coffret>) => {
-      const { data } = await api.post<ApiResponse<Coffret>>('/coffrets', payload);
+    mutationFn: async (payload: Partial<Coffret> | FormData) => {
+      const isFormData = payload instanceof FormData;
+      const { data } = await api.post<ApiResponse<Coffret>>('/coffrets', payload, isFormData ? {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      } : undefined);
       return data.data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['coffrets'] }),
@@ -40,6 +43,32 @@ export function useUpdateCoffret() {
     mutationFn: async ({ id, ...payload }: Partial<Coffret> & { id: number }) => {
       const { data } = await api.put<ApiResponse<Coffret>>(`/coffrets/${id}`, payload);
       return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coffrets'] }),
+  });
+}
+
+export function useUploadCoffretPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, photo }: { id: number; photo: File }) => {
+      const formData = new FormData();
+      formData.append('photo', photo);
+      formData.append('_method', 'PUT');
+      const { data } = await api.post<ApiResponse<Coffret>>(`/coffrets/${id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data.data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['coffrets'] }),
+  });
+}
+
+export function useDeleteCoffretPhoto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/coffrets/${id}/photo`);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['coffrets'] }),
   });

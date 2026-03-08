@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCreateCoffret, useZones, useSalles } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
-import { Plus } from "lucide-react";
+import { Plus, ImagePlus } from "lucide-react";
 
 const armoireSchema = z.object({
   code: z.string().min(1, "Le code est requis"),
@@ -28,6 +28,8 @@ type ArmoireFormData = z.infer<typeof armoireSchema>;
 
 const AddArmoireForm = () => {
   const [open, setOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const createCoffret = useCreateCoffret();
   const { data: paginatedZones } = useZones({ per_page: 100 });
   const zones = paginatedZones?.data || [];
@@ -50,17 +52,23 @@ const AddArmoireForm = () => {
   });
 
   const onSubmit = (data: ArmoireFormData) => {
-    const payload: any = { ...data };
-    if (payload.zone_id) payload.zone_id = Number(payload.zone_id);
-    if (payload.salle_id) payload.salle_id = Number(payload.salle_id);
-    else delete payload.salle_id;
-    if (payload.long) payload.long = Number(payload.long);
-    if (payload.lat) payload.lat = Number(payload.lat);
+    const formData = new FormData();
+    formData.append('code', data.code);
+    formData.append('name', data.name);
+    if (data.piece) formData.append('piece', data.piece);
+    if (data.type) formData.append('type', data.type);
+    if (data.zone_id) formData.append('zone_id', data.zone_id);
+    if (data.salle_id) formData.append('salle_id', data.salle_id);
+    formData.append('status', data.status);
+    if (data.long) formData.append('long', data.long);
+    if (data.lat) formData.append('lat', data.lat);
+    if (photoFile) formData.append('photo', photoFile);
 
-    createCoffret.mutate(payload, {
+    createCoffret.mutate(formData, {
       onSuccess: () => {
         toast({ title: "Baie ajoutée", description: `La baie ${data.name} a été ajoutée avec succès` });
         form.reset();
+        setPhotoFile(null);
         setOpen(false);
       },
       onError: () => toast({ title: "Erreur", description: "Erreur lors de l'ajout", variant: "destructive" }),
@@ -182,6 +190,33 @@ const AddArmoireForm = () => {
                 <FormMessage />
               </FormItem>
             )} />
+
+            <div>
+              <label className="text-sm font-medium">Photo (optionnel)</label>
+              <div className="mt-1 flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImagePlus className="h-4 w-4 mr-1" />
+                  {photoFile ? photoFile.name : "Choisir une photo"}
+                </Button>
+                {photoFile && (
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setPhotoFile(null)}>
+                    Retirer
+                  </Button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+                />
+              </div>
+            </div>
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Annuler</Button>

@@ -1,6 +1,8 @@
+import { useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/axios';
 import type { ApiResponse, NotificationsResponse, AppNotification, ListParams } from '@/types/api';
+import { showBrowserNotification } from '@/hooks/useNotificationPermission';
 
 export function useNotifications(params?: ListParams) {
   return useQuery({
@@ -14,7 +16,9 @@ export function useNotifications(params?: ListParams) {
 }
 
 export function useUnreadCount() {
-  return useQuery({
+  const prevCountRef = useRef<number | null>(null);
+
+  const query = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
       const { data } = await api.get<ApiResponse<NotificationsResponse>>('/notifications', {
@@ -24,6 +28,21 @@ export function useUnreadCount() {
     },
     refetchInterval: 30_000,
   });
+
+  useEffect(() => {
+    if (query.data == null) return;
+    const current = query.data;
+    const prev = prevCountRef.current;
+    if (prev !== null && current > prev) {
+      showBrowserNotification(
+        'ReseauApp',
+        `Vous avez ${current} notification${current > 1 ? 's' : ''} non lue${current > 1 ? 's' : ''}`
+      );
+    }
+    prevCountRef.current = current;
+  }, [query.data]);
+
+  return query;
 }
 
 export function useMarkNotificationRead() {

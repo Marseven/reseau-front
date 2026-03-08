@@ -39,6 +39,7 @@ export interface Coffret {
   long: number | null;
   lat: number | null;
   status: string;
+  photo: string | null;
   qr_token: string;
   zone_id: number | null;
   salle_id: number | null;
@@ -277,6 +278,18 @@ export interface ActivityLog {
   new_values: Record<string, any> | null;
   ip_address: string | null;
   created_at: string;
+  user?: User;
+}
+
+export interface LoginAudit {
+  id: number;
+  user_id: number;
+  action: string;
+  ip_address: string | null;
+  user_agent: string | null;
+  method: string | null;
+  created_at: string;
+  updated_at: string;
   user?: User;
 }
 

@@ -117,6 +117,14 @@ export default function ChangeRequestsSection() {
           columns={["code", "type_label", "coffret_name", "requester_name", "intervention_date_label", "status_label"]}
           data={tableData}
           onRowClick={handleRowClick}
+          filterPresets={{
+            status_label: [
+              { label: "En attente", value: "En attente" },
+              { label: "Approuvée", value: "Approuvée" },
+              { label: "Rejetée", value: "Rejetée" },
+              { label: "En révision", value: "En révision" },
+            ],
+          }}
           renderRowActions={(row: any) => (
             <div className="flex gap-1">
               {canReview(row) && (

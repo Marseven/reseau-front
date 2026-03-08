@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { ChevronRight, ChevronDown, MapPin, Building2, Layers, DoorOpen, Server, Cpu, Loader2, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSites, useZones, useBatiments, useSalles, useCoffrets, useEquipements, useExportArchitecturePdf } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
+
+const SiteMap = lazy(() => import("@/components/map/SiteMap"));
+const NetworkTopology = lazy(() => import("@/components/topology/NetworkTopology"));
 
 function StatusBadge({ status }: { status: string }) {
   const variant = status === "active" ? "default" : status === "maintenance" ? "secondary" : "outline";
@@ -56,6 +60,15 @@ function TreeNode({
   );
 }
 
+function LazyFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <span className="ml-2 text-muted-foreground">Chargement...</span>
+    </div>
+  );
+}
+
 export default function CartographieSection() {
   const { canWrite } = useRole();
   const exportPdf = useExportArchitecturePdf();
@@ -75,35 +88,18 @@ export default function CartographieSection() {
 
   const isLoading = loadingSites || loadingZones || loadingBatiments || loadingSalles || loadingCoffrets || loadingEquipements;
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
-            <div className="text-sm text-muted-foreground mt-1">Vue arborescente de l'infrastructure</div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <span className="ml-2 text-muted-foreground">Chargement de la topologie...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Cartographie LAN</h2>
           <div className="text-sm text-muted-foreground mt-1">
-            Vue arborescente de l'infrastructure : Site &rarr; Zone &rarr; Bâtiment &rarr; Salle &rarr; Armoire &rarr; Équipement
+            Vue arborescente, carte interactive et topologie reseau
           </div>
         </div>
         {canWrite && (
           <Button variant="outline" size="sm" disabled={exportPdf.isPending} onClick={() => exportPdf.mutate(undefined, {
-            onSuccess: () => toast({ title: "Export terminé", description: "Le PDF a été téléchargé" }),
+            onSuccess: () => toast({ title: "Export termine", description: "Le PDF a ete telecharge" }),
             onError: () => toast({ title: "Erreur", description: "Erreur lors de l'export", variant: "destructive" }),
           })}>
             {exportPdf.isPending ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Download className="h-4 w-4 mr-1" />}
@@ -112,109 +108,137 @@ export default function CartographieSection() {
         )}
       </div>
 
-      <div className="border rounded-lg p-4 bg-card">
-        {sites.length === 0 ? (
-          <p className="text-muted-foreground text-center py-10">Aucun site trouvé</p>
-        ) : (
-          sites.map((site: any) => {
-            const siteZones = zones.filter((z: any) => z.site_id === site.id);
-            return (
-              <TreeNode
-                key={site.id}
-                icon={MapPin}
-                label={`${site.name} (${site.code})`}
-                status={site.status}
-                count={siteZones.length}
-                defaultOpen={true}
-              >
-                {siteZones.map((zone: any) => {
-                  const zoneBatiments = batiments.filter((b: any) => b.zone_id === zone.id);
-                  const zoneCoffrets = coffrets.filter((c: any) => c.zone_id === zone.id && !c.salle_id);
+      <Tabs defaultValue="arborescence">
+        <TabsList>
+          <TabsTrigger value="arborescence">Arborescence</TabsTrigger>
+          <TabsTrigger value="carte">Carte</TabsTrigger>
+          <TabsTrigger value="topologie">Topologie reseau</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="arborescence" className="mt-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Chargement de la topologie...</span>
+            </div>
+          ) : (
+            <div className="border rounded-lg p-4 bg-card overflow-x-auto">
+              {sites.length === 0 ? (
+                <p className="text-muted-foreground text-center py-10">Aucun site trouve</p>
+              ) : (
+                sites.map((site: any) => {
+                  const siteZones = zones.filter((z: any) => z.site_id === site.id);
                   return (
                     <TreeNode
-                      key={zone.id}
-                      icon={Layers}
-                      label={`${zone.name} (${zone.code})`}
-                      status={zone.status}
-                      count={zoneBatiments.length + zoneCoffrets.length}
+                      key={site.id}
+                      icon={MapPin}
+                      label={`${site.name} (${site.code})`}
+                      status={site.status}
+                      count={siteZones.length}
+                      defaultOpen={true}
                     >
-                      {zoneBatiments.map((bat: any) => {
-                        const batSalles = salles.filter((s: any) => s.batiment_id === bat.id);
+                      {siteZones.map((zone: any) => {
+                        const zoneBatiments = batiments.filter((b: any) => b.zone_id === zone.id);
+                        const zoneCoffrets = coffrets.filter((c: any) => c.zone_id === zone.id && !c.salle_id);
                         return (
                           <TreeNode
-                            key={bat.id}
-                            icon={Building2}
-                            label={`${bat.name} (${bat.code})`}
-                            status={bat.status}
-                            count={batSalles.length}
+                            key={zone.id}
+                            icon={Layers}
+                            label={`${zone.name} (${zone.code})`}
+                            status={zone.status}
+                            count={zoneBatiments.length + zoneCoffrets.length}
                           >
-                            {batSalles.map((salle: any) => {
-                              const salleCoffrets = coffrets.filter((c: any) => c.salle_id === salle.id);
+                            {zoneBatiments.map((bat: any) => {
+                              const batSalles = salles.filter((s: any) => s.batiment_id === bat.id);
                               return (
                                 <TreeNode
-                                  key={salle.id}
-                                  icon={DoorOpen}
-                                  label={`${salle.name} (${salle.code})`}
-                                  status={salle.status}
-                                  count={salleCoffrets.length}
+                                  key={bat.id}
+                                  icon={Building2}
+                                  label={`${bat.name} (${bat.code})`}
+                                  status={bat.status}
+                                  count={batSalles.length}
                                 >
-                                  {salleCoffrets.map((coffret: any) => {
-                                    const coffretEquipements = equipements.filter((e: any) => e.coffret_id === coffret.id);
+                                  {batSalles.map((salle: any) => {
+                                    const salleCoffrets = coffrets.filter((c: any) => c.salle_id === salle.id);
                                     return (
                                       <TreeNode
-                                        key={coffret.id}
-                                        icon={Server}
-                                        label={`${coffret.name} (${coffret.code})`}
-                                        status={coffret.status}
-                                        count={coffretEquipements.length}
+                                        key={salle.id}
+                                        icon={DoorOpen}
+                                        label={`${salle.name} (${salle.code})`}
+                                        status={salle.status}
+                                        count={salleCoffrets.length}
                                       >
-                                        {coffretEquipements.map((eq: any) => (
-                                          <TreeNode
-                                            key={eq.id}
-                                            icon={Cpu}
-                                            label={`${eq.name} (${eq.equipement_code})`}
-                                            status={eq.status}
-                                          />
-                                        ))}
+                                        {salleCoffrets.map((coffret: any) => {
+                                          const coffretEquipements = equipements.filter((e: any) => e.coffret_id === coffret.id);
+                                          return (
+                                            <TreeNode
+                                              key={coffret.id}
+                                              icon={Server}
+                                              label={`${coffret.name} (${coffret.code})`}
+                                              status={coffret.status}
+                                              count={coffretEquipements.length}
+                                            >
+                                              {coffretEquipements.map((eq: any) => (
+                                                <TreeNode
+                                                  key={eq.id}
+                                                  icon={Cpu}
+                                                  label={`${eq.name} (${eq.equipement_code})`}
+                                                  status={eq.status}
+                                                />
+                                              ))}
+                                            </TreeNode>
+                                          );
+                                        })}
                                       </TreeNode>
                                     );
                                   })}
                                 </TreeNode>
                               );
                             })}
-                          </TreeNode>
-                        );
-                      })}
-                      {/* Coffrets directly in zone (no salle) */}
-                      {zoneCoffrets.map((coffret: any) => {
-                        const coffretEquipements = equipements.filter((e: any) => e.coffret_id === coffret.id);
-                        return (
-                          <TreeNode
-                            key={coffret.id}
-                            icon={Server}
-                            label={`${coffret.name} (${coffret.code})`}
-                            status={coffret.status}
-                            count={coffretEquipements.length}
-                          >
-                            {coffretEquipements.map((eq: any) => (
-                              <TreeNode
-                                key={eq.id}
-                                icon={Cpu}
-                                label={`${eq.name} (${eq.equipement_code})`}
-                                status={eq.status}
-                              />
-                            ))}
+                            {zoneCoffrets.map((coffret: any) => {
+                              const coffretEquipements = equipements.filter((e: any) => e.coffret_id === coffret.id);
+                              return (
+                                <TreeNode
+                                  key={coffret.id}
+                                  icon={Server}
+                                  label={`${coffret.name} (${coffret.code})`}
+                                  status={coffret.status}
+                                  count={coffretEquipements.length}
+                                >
+                                  {coffretEquipements.map((eq: any) => (
+                                    <TreeNode
+                                      key={eq.id}
+                                      icon={Cpu}
+                                      label={`${eq.name} (${eq.equipement_code})`}
+                                      status={eq.status}
+                                    />
+                                  ))}
+                                </TreeNode>
+                              );
+                            })}
                           </TreeNode>
                         );
                       })}
                     </TreeNode>
                   );
-                })}
-              </TreeNode>
-            );
-          })
-        )}
-      </div>
+                })
+              )}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="carte" className="mt-4">
+          <Suspense fallback={<LazyFallback />}>
+            <SiteMap />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="topologie" className="mt-4">
+          <Suspense fallback={<LazyFallback />}>
+            <NetworkTopology />
+          </Suspense>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

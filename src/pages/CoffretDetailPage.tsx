@@ -1,23 +1,46 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, QrCode, MapPin, Calendar, Server, History } from "lucide-react";
-import { useCoffretByQrToken } from "@/hooks/api";
+import { ArrowLeft, QrCode, MapPin, Calendar, Server, History, ImagePlus, Trash2, Image } from "lucide-react";
+import { useCoffretByQrToken, useUploadCoffretPhoto, useDeleteCoffretPhoto } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import ClassificationBadge from "@/components/ui/classification-badge";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
 import AddChangeRequestForm from "@/components/forms/AddChangeRequestForm";
 import CoffretHistoryTimeline from "@/components/history/CoffretHistoryTimeline";
+import { toast } from "@/hooks/use-toast";
 
 export default function CoffretDetailPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { data: coffret, isLoading, isError } = useCoffretByQrToken(token);
-  const { canPropose } = useRole();
+  const { canPropose, canWrite } = useRole();
   const [qrOpen, setQrOpen] = useState(false);
+  const [photoDialogOpen, setPhotoDialogOpen] = useState(false);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const uploadPhoto = useUploadCoffretPhoto();
+  const deletePhoto = useDeleteCoffretPhoto();
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !coffret) return;
+    uploadPhoto.mutate({ id: coffret.id, photo: file }, {
+      onSuccess: () => toast({ title: "Photo mise a jour", description: "La photo a ete ajoutee" }),
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'upload", variant: "destructive" }),
+    });
+  };
+
+  const handleDeletePhoto = () => {
+    if (!coffret) return;
+    deletePhoto.mutate(coffret.id, {
+      onSuccess: () => toast({ title: "Photo supprimee", description: "La photo a ete retiree" }),
+      onError: () => toast({ title: "Erreur", description: "Erreur lors de la suppression", variant: "destructive" }),
+    });
+  };
 
   if (isLoading) {
     return (
@@ -152,6 +175,65 @@ export default function CoffretDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Photo */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                <Image className="h-4 w-4" /> Photo
+              </span>
+              {canWrite && (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => photoInputRef.current?.click()}>
+                    <ImagePlus className="h-4 w-4 mr-1" />
+                    {coffret.photo ? "Remplacer" : "Ajouter"}
+                  </Button>
+                  {coffret.photo && (
+                    <Button variant="outline" size="sm" onClick={handleDeletePhoto} className="text-destructive">
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Supprimer
+                    </Button>
+                  )}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoUpload}
+                  />
+                </div>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {coffret.photo ? (
+              <img
+                src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace('/api/v1', '')}/storage/${coffret.photo}`}
+                alt={coffret.name}
+                className="rounded-lg max-h-64 object-contain cursor-pointer hover:opacity-90 transition"
+                onClick={() => setPhotoDialogOpen(true)}
+              />
+            ) : (
+              <p className="text-muted-foreground text-sm text-center py-8">Aucune photo</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {coffret.photo && (
+          <Dialog open={photoDialogOpen} onOpenChange={setPhotoDialogOpen}>
+            <DialogContent className="max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>{coffret.name}</DialogTitle>
+              </DialogHeader>
+              <img
+                src={`${(import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000').replace('/api/v1', '')}/storage/${coffret.photo}`}
+                alt={coffret.name}
+                className="w-full rounded-lg"
+              />
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Equipements table */}
         <Card>

@@ -128,6 +128,7 @@ export default function AddUserForm() {
                     <FormControl><SelectTrigger><SelectValue placeholder="Rôle" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="user">Utilisateur</SelectItem>
+                      <SelectItem value="prestataire">Prestataire</SelectItem>
                       <SelectItem value="technicien">Technicien</SelectItem>
                       <SelectItem value="directeur">Directeur</SelectItem>
                       <SelectItem value="administrator">Administrateur</SelectItem>

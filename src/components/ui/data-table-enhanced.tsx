@@ -37,6 +37,7 @@ interface DataTableEnhancedProps {
   enableSearch?: boolean;
   enableFilters?: boolean;
   enableExport?: boolean;
+  filterPresets?: Record<string, { label: string; value: string }[]>;
 }
 
 const usePagination = (data: any[], initialItemsPerPage = 10) => {
@@ -79,7 +80,8 @@ export default function DataTableEnhanced({
   renderRowActions,
   enableSearch = true,
   enableFilters = true,
-  enableExport = true
+  enableExport = true,
+  filterPresets
 }: DataTableEnhancedProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterColumn, setFilterColumn] = useState<string>("");
@@ -100,7 +102,7 @@ export default function DataTableEnhanced({
     }
 
     // Apply column filter
-    if (filterColumn && filterValue) {
+    if (filterColumn && filterValue && filterValue !== '__all__') {
       filtered = filtered.filter((row) =>
         String(row[filterColumn]).toLowerCase().includes(filterValue.toLowerCase())
       );
@@ -236,13 +238,27 @@ export default function DataTableEnhanced({
                 </SelectContent>
               </Select>
               
-              <Input
-                placeholder="Valeur à filtrer"
-                value={filterValue}
-                onChange={(e) => setFilterValue(e.target.value)}
-                className="flex-1"
-                disabled={!filterColumn}
-              />
+              {filterColumn && filterPresets && filterPresets[filterColumn] ? (
+                <Select value={filterValue} onValueChange={setFilterValue}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Toutes les valeurs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Toutes les valeurs</SelectItem>
+                    {filterPresets[filterColumn].map((preset) => (
+                      <SelectItem key={preset.value} value={preset.value}>{preset.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  placeholder="Valeur à filtrer"
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                  className="flex-1"
+                  disabled={!filterColumn}
+                />
+              )}
               
               <Button variant="ghost" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4" />
@@ -252,7 +268,7 @@ export default function DataTableEnhanced({
         </div>
       )}
 
-      <div className="rounded-lg border border-border bg-card">
+      <div className="rounded-lg border border-border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-table-header hover:bg-table-header">

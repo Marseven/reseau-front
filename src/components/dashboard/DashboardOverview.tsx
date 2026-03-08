@@ -10,7 +10,7 @@ export default function DashboardOverview() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground tracking-tight">
             Vue d'ensemble
@@ -30,7 +30,7 @@ export default function DashboardOverview() {
 
       {/* Stats cards */}
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard title="Sites" value={String(stats?.sites?.total ?? 0)} icon={Server} />
           <StatsCard title="Équipements" value={String(stats?.equipements?.total ?? 0)} icon={Router} />
           <StatsCard title="Ports" value={String(stats?.ports?.total ?? 0)} icon={Cable} />

@@ -79,6 +79,7 @@ const UsersSection = () => {
       case 'administrator': return 'bg-red-100 text-red-800';
       case 'directeur': return 'bg-purple-100 text-purple-800';
       case 'technicien': return 'bg-blue-100 text-blue-800';
+      case 'prestataire': return 'bg-orange-100 text-orange-800';
       default: return 'bg-green-100 text-green-800';
     }
   };
@@ -88,6 +89,7 @@ const UsersSection = () => {
       case 'administrator': return 'Administrateur';
       case 'directeur': return 'Directeur';
       case 'technicien': return 'Technicien';
+      case 'prestataire': return 'Prestataire';
       default: return 'Utilisateur';
     }
   };

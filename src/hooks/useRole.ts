@@ -7,8 +7,10 @@ export function useRole() {
     role,
     isAdmin: role === 'administrator',
     isDirecteur: role === 'directeur',
+    isPrestataire: role === 'prestataire',
     canWrite: ['administrator', 'directeur'].includes(role),
     canManageUsers: role === 'administrator',
     canPropose: ['administrator', 'directeur', 'technicien'].includes(role),
+    canReadOnly: ['user', 'prestataire'].includes(role),
   };
 }
