@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, QrCode, Download, Loader2 } from "lucide-react";
+import { Trash2, QrCode, Download, Loader2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import QueryWrapper from "@/components/ui/query-wrapper";
@@ -8,6 +8,7 @@ import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
 import AddEquipmentForm from "@/components/forms/AddEquipmentForm";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
+import LabelGeneratorDialog from "@/components/labels/LabelGeneratorDialog";
 import { useEquipements, useUpdateEquipement, useDeleteEquipement, useExportEquipementsCsv } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
@@ -24,6 +25,7 @@ export default function EquipmentsSection() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [qrItem, setQrItem] = useState<any>(null);
+  const [labelDialogOpen, setLabelDialogOpen] = useState(false);
 
   const equipements = paginatedEquipements?.data || [];
 
@@ -71,7 +73,7 @@ export default function EquipmentsSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Équipements</h2>
           <div className="text-sm text-muted-foreground mt-1">
@@ -79,6 +81,12 @@ export default function EquipmentsSection() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button variant="outline" size="sm" onClick={() => setLabelDialogOpen(true)}>
+              <Printer className="h-4 w-4 mr-1" />
+              Étiquettes
+            </Button>
+          )}
           {canWrite && (
             <Button variant="outline" size="sm" disabled={exportCsv.isPending} onClick={() => exportCsv.mutate(undefined, {
               onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
@@ -99,6 +107,17 @@ export default function EquipmentsSection() {
           data={tableData}
           onRowClick={handleRowClick}
           onEdit={canWrite ? handleEdit : undefined}
+          filterPresets={{
+            classification: [
+              { label: "IT", value: "IT" },
+              { label: "OT", value: "OT" },
+            ],
+            status: [
+              { label: "Actif", value: "active" },
+              { label: "Inactif", value: "inactive" },
+              { label: "Maintenance", value: "maintenance" },
+            ],
+          }}
           renderRowActions={(row: any) => (
             <div className="flex items-center gap-1">
               {row.qr_token && (
@@ -159,6 +178,13 @@ export default function EquipmentsSection() {
         value={qrItem ? `${window.location.origin}/equipement/${qrItem.qr_token}` : ''}
         title={qrItem?.name || ''}
         subtitle={qrItem?.equipement_code || ''}
+      />
+
+      <LabelGeneratorDialog
+        type="equipements"
+        selectedIds={equipements.map((e: any) => e.id)}
+        open={labelDialogOpen}
+        onOpenChange={setLabelDialogOpen}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Download, FileBarChart, Network, BarChart3, Wrench, MapPin, Loader2, FileText, History } from "lucide-react";
+import { Download, FileBarChart, Network, BarChart3, Wrench, MapPin, Loader2, FileText, History, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
   useReportSiteArchitecturePdf,
 } from "@/hooks/api";
 import { toast } from "@/hooks/use-toast";
+import CsvImportDialog from "@/components/import/CsvImportDialog";
 
 function formatDate(date: Date): string {
   return date.toISOString().split('T')[0];
@@ -54,6 +55,7 @@ export default function RapportsSection() {
   const [to, setTo] = useState(formatDate(now));
   const [selectedSiteId, setSelectedSiteId] = useState<string>("");
   const [selectedTechId, setSelectedTechId] = useState<string>("");
+  const [importResource, setImportResource] = useState<"coffrets" | "equipements" | "ports" | "liaisons" | null>(null);
 
   const { data: sitesData } = useSites({ per_page: 100 });
   const { data: usersData } = useUsers({ per_page: 100 });
@@ -103,21 +105,21 @@ export default function RapportsSection() {
           <CardDescription>Sélectionnez la période pour les rapports et le résumé</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-end gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="from">Du</Label>
-              <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-44" />
+              <Input id="from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="w-full sm:w-44" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="to">Au</Label>
-              <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-44" />
+              <Input id="to" type="date" value={to} onChange={(e) => setTo(e.target.value)} className="w-full sm:w-44" />
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -346,6 +348,37 @@ export default function RapportsSection() {
           />
         </CardContent>
       </Card>
+
+      <Separator />
+
+      {/* CSV Import */}
+      <div>
+        <h3 className="text-lg font-semibold mb-4">Import CSV</h3>
+        <div className="text-sm text-muted-foreground mb-3">
+          Importez des données en masse depuis un fichier CSV
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {(["coffrets", "equipements", "ports", "liaisons"] as const).map((res) => (
+            <Button
+              key={res}
+              variant="outline"
+              size="sm"
+              onClick={() => setImportResource(res)}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {res === "coffrets" ? "Armoires" : res === "equipements" ? "Équipements" : res === "ports" ? "Ports" : "Liaisons"}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {importResource && (
+        <CsvImportDialog
+          resource={importResource}
+          open={!!importResource}
+          onOpenChange={(open) => { if (!open) setImportResource(null); }}
+        />
+      )}
     </div>
   );
 }

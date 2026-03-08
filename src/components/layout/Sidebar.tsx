@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -23,9 +24,17 @@ import {
   User,
   ClipboardEdit,
   FileBarChart,
+  BarChart3,
+  Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -82,6 +91,7 @@ const menuGroups: MenuGroup[] = [
     label: "Analyse",
     roles: ["administrator", "directeur"],
     items: [
+      { id: "analytics", label: "Analytiques", icon: BarChart3 },
       { id: "rapports", label: "Rapports & Exports", icon: FileBarChart },
     ],
   },
@@ -252,5 +262,160 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
         </div>
       </div>
     </div>
+  );
+}
+
+interface MobileHeaderProps {
+  activeSection: string;
+  onSectionChange: (section: string) => void;
+  rightSlot?: React.ReactNode;
+}
+
+export function MobileHeader({ activeSection, onSectionChange, rightSlot }: MobileHeaderProps) {
+  const [open, setOpen] = useState(false);
+  const { user, logout } = useAuth();
+  const { canManageUsers } = useRole();
+  const { theme, setTheme } = useTheme();
+  const { data: unreadCount = 0 } = useUnreadCount();
+
+  const userRole = user?.role || "";
+
+  const activeLabel =
+    menuGroups
+      .flatMap((g) => g.items)
+      .find((item) => item.id === activeSection)?.label ?? "ReseauApp";
+
+  const handleNav = (section: string) => {
+    onSectionChange(section);
+    setOpen(false);
+  };
+
+  return (
+    <>
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background px-4">
+        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setOpen(true)}>
+          <Menu className="h-5 w-5" />
+        </Button>
+        <span className="flex-1 truncate text-sm font-semibold">{activeLabel}</span>
+        {rightSlot}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9"
+          onClick={() => onSectionChange("notifications")}
+        >
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </Button>
+      </header>
+
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="left" className="w-72 p-0 flex flex-col">
+          <SheetHeader className="p-5 border-b">
+            <SheetTitle className="flex items-center gap-3">
+              <img src="/logo.png" alt="Eramet Comilog" className="h-9 w-auto flex-shrink-0 brightness-0 dark:invert" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold tracking-wide">ReseauApp</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+                  Eramet Comilog
+                </p>
+              </div>
+            </SheetTitle>
+          </SheetHeader>
+
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+            {menuGroups
+              .filter((group) => !group.roles || group.roles.includes(userRole))
+              .map((group) => (
+                <div key={group.label}>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.15em] px-3 pb-2">
+                    {group.label}
+                  </p>
+                  <div className="space-y-0.5">
+                    {group.items
+                      .filter((item) => {
+                        if (item.roles && !item.roles.includes(userRole)) return false;
+                        if (item.id === "users" && !canManageUsers) return false;
+                        return true;
+                      })
+                      .map((item) => {
+                        const isActive = activeSection === item.id;
+                        return (
+                          <Button
+                            key={item.id}
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-start text-sm h-9 px-3 font-medium",
+                              isActive
+                                ? "bg-primary/10 text-primary border-l-2 border-primary rounded-l-none"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent border-l-2 border-transparent"
+                            )}
+                            onClick={() => handleNav(item.id)}
+                          >
+                            <item.icon className={cn("mr-3 h-4 w-4 flex-shrink-0", isActive ? "text-primary" : "")} />
+                            {item.label}
+                            {item.id === "notifications" && unreadCount > 0 && (
+                              <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-bold rounded-full h-5 min-w-[20px] flex items-center justify-center px-1">
+                                {unreadCount > 99 ? "99+" : unreadCount}
+                              </span>
+                            )}
+                          </Button>
+                        );
+                      })}
+                  </div>
+                </div>
+              ))}
+          </nav>
+
+          <div className="p-4 border-t space-y-3">
+            {/* Theme toggle */}
+            <div className="flex items-center gap-1 bg-accent rounded-lg p-1">
+              {themeOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setTheme(opt.value)}
+                  title={opt.label}
+                  className={cn(
+                    "flex-1 flex items-center justify-center h-7 rounded-md transition-all duration-200",
+                    theme === opt.value
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <opt.icon className="h-3.5 w-3.5" />
+                </button>
+              ))}
+            </div>
+
+            {/* User */}
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-md bg-accent flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-bold text-primary">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium truncate">{user?.name || "Utilisateur"}</p>
+                  <p className="text-[10px] text-muted-foreground truncate capitalize">{user?.role || "role"}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                onClick={logout}
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

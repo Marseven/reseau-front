@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Trash2, QrCode, Download, Loader2 } from "lucide-react";
+import { Trash2, QrCode, Download, Loader2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DataTableEnhanced from "../ui/data-table-enhanced";
@@ -13,6 +13,7 @@ import AddLiaisonForm from "../forms/AddLiaisonForm";
 import AddSystemeForm from "../forms/AddSystemeForm";
 import AddArmoireForm from "../forms/AddArmoireForm";
 import QrCodeDialog from "../qrcode/QrCodeDialog";
+import LabelGeneratorDialog from "../labels/LabelGeneratorDialog";
 import {
   useCoffrets, useUpdateCoffret, useDeleteCoffret,
   useEquipements, useUpdateEquipement, useDeleteEquipement,
@@ -60,6 +61,8 @@ export default function ArmoiresSection() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("coffrets");
   const [qrItem, setQrItem] = useState<any>(null);
+  const [labelDialogOpen, setLabelDialogOpen] = useState(false);
+  const [labelType, setLabelType] = useState<"coffrets" | "equipements">("coffrets");
 
   const handleRowClick = (item: any) => {
     setSelectedItem(item);
@@ -208,7 +211,7 @@ export default function ArmoiresSection() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Gestion des Baies</h2>
           <div className="text-sm text-muted-foreground mt-1">
@@ -216,6 +219,16 @@ export default function ArmoiresSection() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {canWrite && (
+            <Button variant="outline" size="sm" onClick={() => {
+              const type = activeTab === "equipements" ? "equipements" : "coffrets";
+              setLabelType(type);
+              setLabelDialogOpen(true);
+            }}>
+              <Printer className="h-4 w-4 mr-1" />
+              Étiquettes
+            </Button>
+          )}
           {canWrite && (
             <Button variant="outline" size="sm" disabled={exportCoffretsCsv.isPending} onClick={() => exportCoffretsCsv.mutate(undefined, {
               onSuccess: () => toast({ title: "Export terminé", description: "Le fichier CSV a été téléchargé" }),
@@ -231,7 +244,7 @@ export default function ArmoiresSection() {
 
       <QueryWrapper isLoading={isLoading} isError={isError} error={error as Error}>
         <Tabs defaultValue="coffrets" className="w-full" onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 bg-secondary">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 bg-secondary">
             <TabsTrigger value="coffrets" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               Baies
             </TabsTrigger>
@@ -359,6 +372,17 @@ export default function ArmoiresSection() {
         value={qrItem ? `${window.location.origin}/${qrItem._type === 'coffret' ? 'baie' : 'equipement'}/${qrItem.qr_token}` : ''}
         title={qrItem?.name || ''}
         subtitle={qrItem?.code || qrItem?.equipement_code || ''}
+      />
+
+      <LabelGeneratorDialog
+        type={labelType}
+        selectedIds={
+          labelType === "coffrets"
+            ? coffrets.map((c: any) => c.id)
+            : equipements.map((e: any) => e.id)
+        }
+        open={labelDialogOpen}
+        onOpenChange={setLabelDialogOpen}
       />
     </div>
   );
