@@ -26,6 +26,9 @@ import {
   FileBarChart,
   BarChart3,
   Menu,
+  ScrollText,
+  ShieldCheck,
+  Archive,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,7 +41,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/hooks/useRole";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useUnreadCount } from "@/hooks/api";
+import { useUnreadCount, useSettings } from "@/hooks/api";
 
 interface SidebarProps {
   activeSection: string;
@@ -93,13 +96,16 @@ const menuGroups: MenuGroup[] = [
     items: [
       { id: "analytics", label: "Analytiques", icon: BarChart3 },
       { id: "rapports", label: "Rapports & Exports", icon: FileBarChart },
+      { id: "activity-logs", label: "Journal d'activité", icon: ScrollText },
     ],
   },
   {
     label: "Administration",
-    roles: ["administrator"],
+    roles: ["administrator", "directeur"],
     items: [
       { id: "users", label: "Utilisateurs", icon: Users },
+      { id: "login-audits", label: "Audit connexions", icon: ShieldCheck, roles: ["administrator"] },
+      { id: "archives", label: "Archives", icon: Archive },
     ],
   },
   {
@@ -123,23 +129,52 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
   const { canManageUsers } = useRole();
   const { theme, setTheme } = useTheme();
   const { data: unreadCount = 0 } = useUnreadCount();
+  const { data: settings } = useSettings();
+  const companyName = settings?.company_name || "Eramet Comilog";
 
   const userRole = user?.role || '';
 
   return (
     <div className="w-64 h-screen bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Header */}
-      <div className="p-5 border-b border-sidebar-border">
+      <div className="p-5 border-b border-sidebar-border space-y-4">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Eramet Comilog" className="h-9 w-auto flex-shrink-0 brightness-0 invert" />
+          <img src="/logo.png" alt={companyName} className="h-9 w-auto flex-shrink-0 brightness-0 invert" />
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-sidebar-accent-foreground tracking-wide">
               ReseauApp
             </h1>
             <p className="text-[10px] text-sidebar-foreground uppercase tracking-widest">
-              Eramet Comilog
+              {companyName}
             </p>
           </div>
+        </div>
+
+        {/* User info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-md bg-sidebar-accent flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-sidebar-primary">
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-medium text-sidebar-accent-foreground truncate">
+                {user?.name || 'Utilisateur'}
+              </p>
+              <p className="text-[10px] text-sidebar-foreground truncate capitalize">
+                {user?.role || 'role'}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-sidebar-foreground hover:text-[hsl(var(--destructive))] hover:bg-sidebar-accent"
+            onClick={logout}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 
@@ -234,32 +269,6 @@ export default function Sidebar({ activeSection, onSectionChange }: SidebarProps
           </span>
         </div>
 
-        {/* User */}
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-md bg-sidebar-accent flex items-center justify-center flex-shrink-0">
-              <span className="text-[10px] font-bold text-sidebar-primary">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-              </span>
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-sidebar-accent-foreground truncate">
-                {user?.name || 'Utilisateur'}
-              </p>
-              <p className="text-[10px] text-sidebar-foreground truncate capitalize">
-                {user?.role || 'role'}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0 text-sidebar-foreground hover:text-[hsl(var(--destructive))] hover:bg-sidebar-accent"
-            onClick={logout}
-          >
-            <LogOut className="h-3.5 w-3.5" />
-          </Button>
-        </div>
       </div>
     </div>
   );
@@ -277,6 +286,8 @@ export function MobileHeader({ activeSection, onSectionChange, rightSlot }: Mobi
   const { canManageUsers } = useRole();
   const { theme, setTheme } = useTheme();
   const { data: unreadCount = 0 } = useUnreadCount();
+  const { data: settings } = useSettings();
+  const companyName = settings?.company_name || "Eramet Comilog";
 
   const userRole = user?.role || "";
 
@@ -315,16 +326,39 @@ export function MobileHeader({ activeSection, onSectionChange, rightSlot }: Mobi
 
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="left" className="w-72 p-0 flex flex-col">
-          <SheetHeader className="p-5 border-b">
+          <SheetHeader className="p-5 border-b space-y-4">
             <SheetTitle className="flex items-center gap-3">
-              <img src="/logo.png" alt="Eramet Comilog" className="h-9 w-auto flex-shrink-0 brightness-0 dark:invert" />
+              <img src="/logo.png" alt={companyName} className="h-9 w-auto flex-shrink-0 brightness-0 dark:invert" />
               <div className="min-w-0">
                 <p className="text-sm font-bold tracking-wide">ReseauApp</p>
                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                  Eramet Comilog
+                  {companyName}
                 </p>
               </div>
             </SheetTitle>
+
+            {/* User info */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 rounded-md bg-accent flex items-center justify-center flex-shrink-0">
+                  <span className="text-xs font-bold text-primary">
+                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium truncate">{user?.name || "Utilisateur"}</p>
+                  <p className="text-[10px] text-muted-foreground truncate capitalize">{user?.role || "role"}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                onClick={logout}
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </SheetHeader>
 
           <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
@@ -391,28 +425,6 @@ export function MobileHeader({ activeSection, onSectionChange, rightSlot }: Mobi
               ))}
             </div>
 
-            {/* User */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-md bg-accent flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-bold text-primary">
-                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium truncate">{user?.name || "Utilisateur"}</p>
-                  <p className="text-[10px] text-muted-foreground truncate capitalize">{user?.role || "role"}</p>
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                onClick={logout}
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </Button>
-            </div>
           </div>
         </SheetContent>
       </Sheet>

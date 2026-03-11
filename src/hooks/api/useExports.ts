@@ -114,6 +114,13 @@ export function useReportSiteArchitecturePdf() {
   });
 }
 
+export function useReportSummaryPdf() {
+  return useMutation({
+    mutationFn: (params?: ExportParams) =>
+      downloadExport('/reports/summary/pdf', params, 'synthese.pdf'),
+  });
+}
+
 // Query hook
 export function useReportSummary(params?: ExportParams) {
   return useQuery({

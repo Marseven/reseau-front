@@ -169,7 +169,7 @@ export default function EquipmentsSection() {
 
       <LabelGeneratorDialog
         type="equipements"
-        selectedIds={equipements.map((e: any) => e.id)}
+        items={equipements.map((e: any) => ({ id: e.id, name: e.name, code: e.equipement_code || e.code || String(e.id) }))}
         open={labelDialogOpen}
         onOpenChange={setLabelDialogOpen}
       />

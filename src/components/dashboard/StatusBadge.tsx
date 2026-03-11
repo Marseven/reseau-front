@@ -4,6 +4,7 @@ type StatusType = "up" | "down" | "warn" | "maintenance" | "ok" | "actif" | "fer
 
 interface StatusBadgeProps {
   status: StatusType;
+  label?: string;
   className?: string;
 }
 
@@ -52,7 +53,7 @@ const statusConfig = {
   },
 };
 
-export default function StatusBadge({ status, className }: StatusBadgeProps) {
+export default function StatusBadge({ status, label: customLabel, className }: StatusBadgeProps) {
   const config = statusConfig[status] || statusConfig.ok;
 
   return (
@@ -63,7 +64,7 @@ export default function StatusBadge({ status, className }: StatusBadgeProps) {
       className
     )}>
       <span className={cn("w-1.5 h-1.5 rounded-full", config.dot)} />
-      {config.label}
+      {customLabel || config.label}
     </span>
   );
 }

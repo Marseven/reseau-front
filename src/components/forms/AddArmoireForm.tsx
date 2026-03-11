@@ -80,7 +80,11 @@ const AddArmoireForm = ({ initialData, open: controlledOpen, onOpenChange }: Add
       if (payload.salle_id) payload.salle_id = Number(payload.salle_id);
       else delete payload.salle_id;
       if (payload.long) payload.long = Number(payload.long);
+      else delete payload.long;
       if (payload.lat) payload.lat = Number(payload.lat);
+      else delete payload.lat;
+      if (!payload.piece) delete payload.piece;
+      if (!payload.type) delete payload.type;
 
       updateCoffret.mutate({ id: initialData.id, ...payload }, {
         onSuccess: () => {

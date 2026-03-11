@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, QrCode, Calendar, Cpu, Network } from "lucide-react";
+import { ArrowLeft, QrCode, Calendar, Cpu, Network, MapPin } from "lucide-react";
 import { useEquipementByQrToken } from "@/hooks/api";
+import { useRole } from "@/hooks/useRole";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import StatusBadge from "@/components/dashboard/StatusBadge";
 import ClassificationBadge from "@/components/ui/classification-badge";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
+import AddPortForm from "@/components/forms/AddPortForm";
 
 export default function EquipementDetailPage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const { data: equipement, isLoading, isError } = useEquipementByQrToken(token);
+  const { canWrite } = useRole();
   const [qrOpen, setQrOpen] = useState(false);
 
   if (isLoading) {
@@ -66,6 +69,48 @@ export default function EquipementDetailPage() {
           QR Code
         </Button>
       </div>
+
+      {/* Localisation */}
+      {equipement.coffret && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> Localisation
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Baie :</span>
+                <Link
+                  to={`/baie/${equipement.coffret.qr_token}`}
+                  className="font-medium text-primary hover:underline"
+                >
+                  {equipement.coffret.name} ({equipement.coffret.code})
+                </Link>
+              </div>
+              {equipement.coffret.zone && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Zone :</span>
+                  <span className="font-medium">{equipement.coffret.zone.name}</span>
+                </div>
+              )}
+              {equipement.coffret.zone?.site && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Site :</span>
+                  <span className="font-medium">{equipement.coffret.zone.site.name}</span>
+                </div>
+              )}
+              {equipement.coffret.salle && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Salle :</span>
+                  <span className="font-medium">{equipement.coffret.salle.name}</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Info cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,26 +173,17 @@ export default function EquipementDetailPage() {
                 <span className="font-medium uppercase">{equipement.direction_in_out}</span>
               </div>
             )}
-            {equipement.coffret && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Baie</span>
-                {equipement.coffret.qr_token ? (
-                  <Link
-                    to={`/baie/${equipement.coffret.qr_token}`}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {equipement.coffret.name}
-                  </Link>
-                ) : (
-                  <span className="font-medium">{equipement.coffret.name}</span>
-                )}
-              </div>
-            )}
             <div className="flex justify-between">
               <span className="text-muted-foreground">Créé le</span>
               <span className="font-medium flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
                 {new Date(equipement.created_at).toLocaleDateString("fr-FR")}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Modifié le</span>
+              <span className="font-medium">
+                {new Date(equipement.updated_at).toLocaleDateString("fr-FR")}
               </span>
             </div>
           </CardContent>
@@ -157,9 +193,12 @@ export default function EquipementDetailPage() {
       {/* Ports table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Network className="h-5 w-5" />
-            Ports ({equipement.ports?.length || 0})
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Network className="h-5 w-5" />
+              Ports ({equipement.ports?.length || 0})
+            </span>
+            {canWrite && <AddPortForm defaultEquipementId={equipement.id} />}
           </CardTitle>
         </CardHeader>
         <CardContent>

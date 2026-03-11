@@ -125,15 +125,15 @@ export default function AddZoneForm({ initialData, open: controlledOpen, onOpenC
             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="floor" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Étage</FormLabel>
-                  <FormControl><Input placeholder="RDC" {...field} /></FormControl>
+                  <FormLabel>Étage (indication)</FormLabel>
+                  <FormControl><Input placeholder="Ex : RDC, 1er étage..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="building" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Bâtiment</FormLabel>
-                  <FormControl><Input placeholder="Bâtiment A" {...field} /></FormControl>
+                  <FormLabel>Bâtiment (indication)</FormLabel>
+                  <FormControl><Input placeholder="Ex : Bâtiment principal..." {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />

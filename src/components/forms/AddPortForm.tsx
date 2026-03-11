@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCreatePort, useUpdatePort, useEquipements } from "@/hooks/api";
@@ -30,9 +31,10 @@ interface AddPortFormProps {
   initialData?: any;
   open?: boolean;
   onOpenChange?: (v: boolean) => void;
+  defaultEquipementId?: number;
 }
 
-const AddPortForm = ({ initialData, open: controlledOpen, onOpenChange }: AddPortFormProps = {}) => {
+const AddPortForm = ({ initialData, open: controlledOpen, onOpenChange, defaultEquipementId }: AddPortFormProps = {}) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const isEdit = !!initialData;
   const open = controlledOpen ?? internalOpen;
@@ -49,7 +51,8 @@ const AddPortForm = ({ initialData, open: controlledOpen, onOpenChange }: AddPor
     defaultValues: {
       port_label: "", device_name: "", port_type: "",
       speed: "", status: "active", vlan: "",
-      equipement_id: "", poe_enabled: false, description: "",
+      equipement_id: defaultEquipementId ? String(defaultEquipementId) : "",
+      poe_enabled: false, description: "",
     }
   });
 
@@ -121,8 +124,8 @@ const AddPortForm = ({ initialData, open: controlledOpen, onOpenChange }: AddPor
               )} />
               <FormField control={form.control} name="device_name" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom appareil</FormLabel>
-                  <FormControl><Input placeholder="Switch Core" {...field} /></FormControl>
+                  <FormLabel>Appareil hôte (optionnel)</FormLabel>
+                  <FormControl><Input placeholder="Ex : SW-Core-01" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
@@ -184,6 +187,18 @@ const AddPortForm = ({ initialData, open: controlledOpen, onOpenChange }: AddPor
                 </FormItem>
               )} />
             </div>
+
+            <FormField control={form.control} name="poe_enabled" render={({ field }) => (
+              <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <FormLabel className="text-sm font-medium">PoE (Power over Ethernet)</FormLabel>
+                  <p className="text-xs text-muted-foreground">Activer l'alimentation via le câble réseau</p>
+                </div>
+                <FormControl>
+                  <Switch checked={field.value} onCheckedChange={field.onChange} />
+                </FormControl>
+              </FormItem>
+            )} />
 
             <FormField control={form.control} name="equipement_id" render={({ field }) => (
               <FormItem>

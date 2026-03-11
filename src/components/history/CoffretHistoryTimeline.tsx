@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCoffretHistory } from "@/hooks/api";
+import { useCoffretHistory, useZones, useSites, useSalles, useBatiments } from "@/hooks/api";
 import type { ActivityLog } from "@/types/api";
 
 const actionConfig: Record<string, { label: string; color: string }> = {
@@ -23,7 +23,82 @@ function getEntityShortName(entityType: string): string {
   return nameMap[name] || name;
 }
 
-function DiffPanel({ oldValues, newValues }: { oldValues: Record<string, any> | null; newValues: Record<string, any> | null }) {
+const fieldLabels: Record<string, string> = {
+  code: "Code",
+  name: "Nom",
+  piece: "Pièce",
+  type: "Type",
+  status: "Statut",
+  description: "Description",
+  zone_id: "Zone",
+  site_id: "Site",
+  coffret_id: "Armoire",
+  salle_id: "Salle",
+  batiment_id: "Bâtiment",
+  equipement_id: "Équipement",
+  connected_equipment_id: "Équipement connecté",
+  long: "Longitude",
+  lat: "Latitude",
+  ip_address: "Adresse IP",
+  vlan: "VLAN",
+  speed: "Vitesse",
+  port_label: "Label port",
+  port_type: "Type port",
+  device_name: "Appareil hôte",
+  poe_enabled: "PoE",
+  direction_in_out: "Direction",
+  equipement_code: "Code équipement",
+  classification: "Classification",
+  fabricant: "Fabricant",
+  modele: "Modèle",
+  serial_number: "N° série",
+  firmware_version: "Version firmware",
+  floor: "Étage",
+  building: "Bâtiment",
+  label: "Label",
+  media: "Média",
+  length: "Longueur",
+  from: "Origine",
+  to: "Destination",
+  title: "Titre",
+  scheduled_date: "Date prévue",
+  is_active: "Actif",
+  role: "Rôle",
+  email: "Email",
+  username: "Nom d'utilisateur",
+  phone: "Téléphone",
+  address: "Adresse",
+  monitored_scope: "Périmètre",
+  vendor: "Fournisseur",
+  endpoint: "Endpoint",
+};
+
+const statusLabels: Record<string, string> = {
+  active: "Actif",
+  inactive: "Inactif",
+  maintenance: "Maintenance",
+  reserved: "Réservé",
+  planifiee: "Planifiée",
+  en_cours: "En cours",
+  terminee: "Terminée",
+  annulee: "Annulée",
+};
+
+type ResolveMap = Record<string, Record<number, string>>;
+
+function formatValue(key: string, value: any, resolveMap?: ResolveMap): string {
+  if (value === null || value === undefined) return "—";
+  if (key === "status" && typeof value === "string" && statusLabels[value]) return statusLabels[value];
+  if (key === "poe_enabled") return value ? "Oui" : "Non";
+  if (key === "is_active") return value ? "Oui" : "Non";
+  if (typeof value === "boolean") return value ? "Oui" : "Non";
+  if (resolveMap?.[key] && typeof value === "number") {
+    return resolveMap[key][value] || String(value);
+  }
+  return String(value);
+}
+
+function DiffPanel({ oldValues, newValues, resolveMap }: { oldValues: Record<string, any> | null; newValues: Record<string, any> | null; resolveMap?: ResolveMap }) {
   const keys = new Set([
     ...Object.keys(oldValues || {}),
     ...Object.keys(newValues || {}),
@@ -40,15 +115,16 @@ function DiffPanel({ oldValues, newValues }: { oldValues: Record<string, any> | 
         const oldVal = oldValues?.[key];
         const newVal = newValues?.[key];
         if (typeof oldVal === "object" || typeof newVal === "object") return null;
+        const label = fieldLabels[key] || key;
         return (
           <div key={key} className="flex items-center gap-2 py-0.5">
-            <span className="text-muted-foreground font-mono w-32 truncate">{key}</span>
+            <span className="text-muted-foreground font-mono w-36 truncate" title={key}>{label}</span>
             {oldVal !== undefined && (
-              <span className="line-through text-red-500">{String(oldVal ?? "—")}</span>
+              <span className="line-through text-red-500">{formatValue(key, oldVal, resolveMap)}</span>
             )}
             {oldVal !== undefined && newVal !== undefined && <span className="text-muted-foreground">→</span>}
             {newVal !== undefined && (
-              <span className="text-green-600 dark:text-green-400">{String(newVal ?? "—")}</span>
+              <span className="text-green-600 dark:text-green-400">{formatValue(key, newVal, resolveMap)}</span>
             )}
           </div>
         );
@@ -57,7 +133,7 @@ function DiffPanel({ oldValues, newValues }: { oldValues: Record<string, any> | 
   );
 }
 
-function TimelineEntry({ log }: { log: ActivityLog }) {
+function TimelineEntry({ log, resolveMap }: { log: ActivityLog; resolveMap?: ResolveMap }) {
   const [expanded, setExpanded] = useState(false);
   const config = actionConfig[log.action] || { label: log.action, color: "bg-gray-100 text-gray-800" };
   const hasDetails = (log.old_values && Object.keys(log.old_values).length > 0) ||
@@ -102,7 +178,7 @@ function TimelineEntry({ log }: { log: ActivityLog }) {
           )}
         </div>
         {expanded && hasDetails && (
-          <DiffPanel oldValues={log.old_values} newValues={log.new_values} />
+          <DiffPanel oldValues={log.old_values} newValues={log.new_values} resolveMap={resolveMap} />
         )}
       </div>
     </div>
@@ -112,6 +188,24 @@ function TimelineEntry({ log }: { log: ActivityLog }) {
 export default function CoffretHistoryTimeline({ coffretId }: { coffretId: number }) {
   const { data, isLoading, isError } = useCoffretHistory(coffretId);
   const logs = data?.data || [];
+
+  const { data: zonesData } = useZones({ per_page: 200 });
+  const { data: sitesData } = useSites({ per_page: 200 });
+  const { data: sallesData } = useSalles({ per_page: 200 });
+  const { data: batimentsData } = useBatiments({ per_page: 200 });
+
+  const resolveMap = useMemo<ResolveMap>(() => {
+    const zones = zonesData?.data || [];
+    const sites = sitesData?.data || [];
+    const salles = sallesData?.data || [];
+    const batiments = batimentsData?.data || [];
+    return {
+      zone_id: Object.fromEntries(zones.map((z: any) => [z.id, z.name])),
+      site_id: Object.fromEntries(sites.map((s: any) => [s.id, s.name])),
+      salle_id: Object.fromEntries(salles.map((s: any) => [s.id, s.name])),
+      batiment_id: Object.fromEntries(batiments.map((b: any) => [b.id, b.name])),
+    };
+  }, [zonesData, sitesData, sallesData, batimentsData]);
 
   if (isLoading) {
     return (
@@ -134,7 +228,7 @@ export default function CoffretHistoryTimeline({ coffretId }: { coffretId: numbe
   return (
     <div className="relative">
       {logs.map((log) => (
-        <TimelineEntry key={log.id} log={log} />
+        <TimelineEntry key={log.id} log={log} resolveMap={resolveMap} />
       ))}
     </div>
   );

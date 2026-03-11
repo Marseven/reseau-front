@@ -7,19 +7,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import QueryWrapper from "@/components/ui/query-wrapper";
 import DataTableEnhanced from "@/components/ui/data-table-enhanced";
 import DetailsModal from "@/components/ui/details-modal";
-import EditModal from "@/components/ui/edit-modal";
 import DeleteConfirmDialog from "@/components/ui/delete-confirm-dialog";
-import { useUsers, useUpdateUser, useDeleteUser } from "@/hooks/api";
+import AddUserForm from "@/components/forms/AddUserForm";
+import { useUsers, useDeleteUser } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { toast } from "@/hooks/use-toast";
-import { LogOut, Settings, Trash2 } from "lucide-react";
+import { LogOut, Settings, Trash2, Pencil } from "lucide-react";
 
 const UsersSection = () => {
   const { user, logout } = useAuth();
   const { canManageUsers } = useRole();
   const [params] = useState({ per_page: 50 });
   const { data: paginatedUsers, isLoading, isError, error } = useUsers(params);
-  const updateUser = useUpdateUser();
   const deleteUser = useDeleteUser();
 
   const users = paginatedUsers?.data || [];
@@ -27,6 +26,7 @@ const UsersSection = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const handleRowClick = (item: any) => {
@@ -35,18 +35,8 @@ const UsersSection = () => {
   };
 
   const handleEdit = (item: any) => {
-    setSelectedItem(item);
+    setEditItem(item);
     setIsEditOpen(true);
-  };
-
-  const handleSave = (updatedItem: any) => {
-    updateUser.mutate(updatedItem, {
-      onSuccess: () => {
-        toast({ title: "Utilisateur mis à jour", description: "L'utilisateur a été mis à jour avec succès" });
-        setIsEditOpen(false);
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de la mise à jour", variant: "destructive" }),
-    });
   };
 
   const handleDeleteClick = (item: any) => {
@@ -110,10 +100,13 @@ const UsersSection = () => {
             Gérez les comptes utilisateurs et leurs permissions
           </p>
         </div>
-        <Button variant="outline" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Se déconnecter
-        </Button>
+        <div className="flex gap-2">
+          {canManageUsers && <AddUserForm />}
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Se déconnecter
+          </Button>
+        </div>
       </div>
 
       {/* Current User Card */}
@@ -149,16 +142,27 @@ const UsersSection = () => {
           columns={["full_name", "email", "role", "site_name", "active_status"]}
           data={tableData}
           onRowClick={handleRowClick}
-          onEdit={canManageUsers ? handleEdit : undefined}
           renderRowActions={canManageUsers ? (row: any) => (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); handleEdit(row); }}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                title="Modifier"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); handleDeleteClick(row); }}
+                className="text-destructive hover:text-destructive"
+                title="Désactiver"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           ) : undefined}
         />
       </QueryWrapper>
@@ -168,19 +172,20 @@ const UsersSection = () => {
         onOpenChange={setIsDetailsOpen}
         title="Détails de l'utilisateur"
         data={selectedItem}
-        onEdit={() => {
+        onEdit={canManageUsers ? () => {
           setIsDetailsOpen(false);
+          setEditItem(selectedItem);
           setIsEditOpen(true);
-        }}
+        } : undefined}
       />
 
-      <EditModal
-        open={isEditOpen}
-        onOpenChange={setIsEditOpen}
-        title="Modifier l'utilisateur"
-        data={selectedItem}
-        onSave={handleSave}
-      />
+      {editItem && (
+        <AddUserForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

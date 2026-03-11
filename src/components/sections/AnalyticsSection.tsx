@@ -5,6 +5,9 @@ import VendorDistributionChart from "@/components/analytics/VendorDistributionCh
 import MaintenanceTrendsChart from "@/components/analytics/MaintenanceTrendsChart";
 import PortUtilizationChart from "@/components/analytics/PortUtilizationChart";
 import SitesSummaryTable from "@/components/analytics/SitesSummaryTable";
+import SystemsByTypeChart from "@/components/analytics/SystemsByTypeChart";
+import EquipementsByCoffretChart from "@/components/analytics/EquipementsByCoffretChart";
+import PortsByVlanChart from "@/components/analytics/PortsByVlanChart";
 
 export default function AnalyticsSection() {
   return (
@@ -20,7 +23,10 @@ export default function AnalyticsSection() {
         <EquipementsByTypeChart />
         <EquipementsByClassificationChart />
         <EquipementsByStatusChart />
+        <SystemsByTypeChart />
+        <PortsByVlanChart />
         <VendorDistributionChart />
+        <EquipementsByCoffretChart />
         <MaintenanceTrendsChart />
         <PortUtilizationChart />
         <SitesSummaryTable />

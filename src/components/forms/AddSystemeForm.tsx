@@ -122,6 +122,7 @@ const AddSystemeForm = ({ initialData, open: controlledOpen, onOpenChange }: Add
                     <FormControl><SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="NMS">NMS</SelectItem>
+                      <SelectItem value="Monitoring">Monitoring</SelectItem>
                       <SelectItem value="Camera">Caméra</SelectItem>
                       <SelectItem value="IPAM">IPAM</SelectItem>
                       <SelectItem value="Syslog">Syslog</SelectItem>

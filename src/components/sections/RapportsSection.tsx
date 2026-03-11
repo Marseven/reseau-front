@@ -16,6 +16,7 @@ import {
   useExportLiaisonsCsv,
   useExportActivityLogsCsv,
   useExportArchitecturePdf,
+  useReportSummaryPdf,
   useReportNetworkStatusPdf,
   useReportModificationsPdf,
   useReportInterventionsPdf,
@@ -75,6 +76,9 @@ export default function RapportsSection() {
   const exportActivityLogs = useExportActivityLogsCsv();
   const exportArchitecture = useExportArchitecturePdf();
 
+  // Summary PDF
+  const reportSummary = useReportSummaryPdf();
+
   // Report mutations
   const reportNetworkStatus = useReportNetworkStatusPdf();
   const reportModifications = useReportModificationsPdf();
@@ -118,7 +122,16 @@ export default function RapportsSection() {
         </CardContent>
       </Card>
 
-      {/* Summary cards */}
+      {/* Summary */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Rapport de synthèse</h3>
+        <ExportButton
+          label="Télécharger PDF"
+          icon={Download}
+          isPending={reportSummary.isPending}
+          onClick={() => handleExport(reportSummary, { from, to })}
+        />
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">

@@ -1,0 +1,1 @@
+import{i as a,j as r}from"./index-C6-Jurtr.js";function n(t,e){return a({queryKey:["coffret-history",t,e],queryFn:async()=>{const{data:i}=await r.get(`/coffrets/${t}/history`,{params:e});return i.data},enabled:!!t})}function u(t){return a({queryKey:["activity-logs",t],queryFn:async()=>{const{data:e}=await r.get("/activity-logs",{params:t});return e.data}})}export{u as a,n as u};

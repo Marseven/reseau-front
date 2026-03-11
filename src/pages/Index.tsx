@@ -21,6 +21,9 @@ const ProfileSection = lazy(() => import("@/components/sections/ProfileSection")
 const ChangeRequestsSection = lazy(() => import("@/components/sections/ChangeRequestsSection"));
 const RapportsSection = lazy(() => import("@/components/sections/RapportsSection"));
 const AnalyticsSection = lazy(() => import("@/components/sections/AnalyticsSection"));
+const ActivityLogsSection = lazy(() => import("@/components/sections/ActivityLogsSection"));
+const LoginAuditsSection = lazy(() => import("@/components/sections/LoginAuditsSection"));
+const ArchivesSection = lazy(() => import("@/components/sections/ArchivesSection"));
 
 const Index = () => {
   const { activeSection } = useOutletContext<{ activeSection: string; setActiveSection: (s: string) => void }>();
@@ -61,6 +64,12 @@ const Index = () => {
         return <RapportsSection />;
       case "analytics":
         return <AnalyticsSection />;
+      case "activity-logs":
+        return <ActivityLogsSection />;
+      case "login-audits":
+        return <LoginAuditsSection />;
+      case "archives":
+        return <ArchivesSection />;
       case "profil":
         return <ProfileSection />;
       default:

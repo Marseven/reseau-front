@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, QrCode, MapPin, Calendar, Server, History, ImagePlus, Trash2, Image } from "lucide-react";
+import { ArrowLeft, QrCode, MapPin, Calendar, Server, History, ImagePlus, Trash2, Image, Activity } from "lucide-react";
 import { useCoffretByQrToken, useUploadCoffretPhoto, useDeleteCoffretPhoto } from "@/hooks/api";
 import { useRole } from "@/hooks/useRole";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import StatusBadge from "@/components/dashboard/StatusBadge";
 import ClassificationBadge from "@/components/ui/classification-badge";
 import QrCodeDialog from "@/components/qrcode/QrCodeDialog";
 import AddChangeRequestForm from "@/components/forms/AddChangeRequestForm";
+import AddMetricForm from "@/components/forms/AddMetricForm";
 import CoffretHistoryTimeline from "@/components/history/CoffretHistoryTimeline";
 import { toast } from "@/hooks/use-toast";
 
@@ -261,7 +262,7 @@ export default function CoffretDetailPage() {
                     <tr
                       key={eq.id}
                       className="border-b last:border-0 hover:bg-muted/50 cursor-pointer"
-                      onClick={() => eq.qr_token && navigate(`/equipement/${eq.qr_token}`)}
+                      onClick={() => navigate(`/equipement/${eq.qr_token}`)}
                     >
                       <td className="py-2 pr-4 font-medium">{eq.name}</td>
                       <td className="py-2 pr-4">{eq.type}</td>
@@ -280,6 +281,49 @@ export default function CoffretDetailPage() {
             </div>
           ) : (
             <p className="text-muted-foreground text-sm">Aucun équipement dans cette baie.</p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Metrics */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Métriques ({coffret.metrics?.length || 0})
+            </span>
+            {canWrite && <AddMetricForm coffretId={coffret.id} />}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {coffret.metrics && coffret.metrics.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-2 pr-4">Nom</th>
+                    <th className="pb-2 pr-4">Type</th>
+                    <th className="pb-2 pr-4">Dernière valeur</th>
+                    <th className="pb-2">Statut</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {coffret.metrics.map((m: any) => (
+                    <tr key={m.id} className="border-b last:border-0">
+                      <td className="py-2 pr-4 font-medium">{m.name}</td>
+                      <td className="py-2 pr-4">{m.type}</td>
+                      <td className="py-2 pr-4 font-mono text-xs">{m.last_value || "—"}</td>
+                      <td className="py-2">
+                        <StatusBadge status={m.status as any} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">Aucune métrique configurée.</p>
           )}
         </CardContent>
       </Card>

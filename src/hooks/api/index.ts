@@ -24,3 +24,4 @@ export * from './useAnalytics';
 export * from './useLabels';
 export * from './useProfile';
 export * from './useSettings';
+export * from './useTrash';

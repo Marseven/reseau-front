@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, X, RotateCcw, Trash2 } from "lucide-react";
+import { Check, X, RotateCcw, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -33,12 +33,15 @@ export default function ChangeRequestsSection() {
   const { data: paginatedData, isLoading, isError, error } = useChangeRequests(params);
   const reviewChangeRequest = useReviewChangeRequest();
   const deleteChangeRequest = useDeleteChangeRequest();
-  const { isAdmin, canPropose } = useRole();
+  const { isAdmin, isDirecteur, canPropose } = useRole();
+  const canReviewRequests = isAdmin || isDirecteur;
 
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [reviewAction, setReviewAction] = useState<'rejetee' | 'en_revision' | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editItem, setEditItem] = useState<any>(null);
+  const [reviewAction, setReviewAction] = useState<'approuvee' | 'rejetee' | 'en_revision' | null>(null);
   const [reviewComment, setReviewComment] = useState("");
 
   const changeRequests = paginatedData?.data || [];
@@ -48,25 +51,16 @@ export default function ChangeRequestsSection() {
     setIsDetailsOpen(true);
   };
 
-  const handleApprove = (item: any) => {
-    reviewChangeRequest.mutate({ id: item.id, status: 'approuvee' }, {
-      onSuccess: () => {
-        toast({ title: "Demande approuvée", description: `La demande ${item.code} a été approuvée` });
-      },
-      onError: () => toast({ title: "Erreur", description: "Erreur lors de l'approbation", variant: "destructive" }),
-    });
-  };
-
   const handleReviewSubmit = () => {
     if (!selectedItem || !reviewAction) return;
     reviewChangeRequest.mutate({
       id: selectedItem.id,
       status: reviewAction,
-      review_comment: reviewComment,
+      ...(reviewComment ? { review_comment: reviewComment } : {}),
     }, {
       onSuccess: () => {
-        const label = reviewAction === 'rejetee' ? 'rejetée' : 'mise en révision';
-        toast({ title: "Demande mise à jour", description: `La demande ${selectedItem.code} a été ${label}` });
+        const labels: Record<string, string> = { approuvee: 'approuvée', rejetee: 'rejetée', en_revision: 'mise en révision' };
+        toast({ title: "Demande mise à jour", description: `La demande ${selectedItem.code} a été ${labels[reviewAction]}` });
         setReviewAction(null);
         setReviewComment("");
       },
@@ -100,7 +94,8 @@ export default function ChangeRequestsSection() {
     intervention_date_label: cr.intervention_date ? new Date(cr.intervention_date).toLocaleDateString('fr-FR') : '-',
   }));
 
-  const canReview = (row: any) => isAdmin && ['en_attente', 'en_revision'].includes(row.status);
+  const canReview = (row: any) => canReviewRequests && ['en_attente', 'en_revision'].includes(row.status);
+  const canEditRow = (row: any) => ['en_attente', 'en_revision'].includes(row.status);
   const canDeleteRow = (row: any) => isAdmin || row.status === 'en_attente';
 
   return (
@@ -136,7 +131,7 @@ export default function ChangeRequestsSection() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={(e) => { e.stopPropagation(); handleApprove(row); }}
+                    onClick={(e) => { e.stopPropagation(); setSelectedItem(row); setReviewAction('approuvee'); }}
                     className="text-green-600 hover:text-green-700 hover:bg-green-50"
                     title="Approuver"
                   >
@@ -161,6 +156,17 @@ export default function ChangeRequestsSection() {
                     <RotateCcw className="h-4 w-4" />
                   </Button>
                 </>
+              )}
+              {canEditRow(row) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); setEditItem(row); setIsEditOpen(true); }}
+                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  title="Modifier"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               )}
               {canDeleteRow(row) && (
                 <Button
@@ -196,23 +202,25 @@ export default function ChangeRequestsSection() {
         } : null}
       />
 
-      {/* Review dialog (reject / revision) */}
+      {/* Review dialog (approve / reject / revision) */}
       <Dialog open={!!reviewAction} onOpenChange={(open) => { if (!open) { setReviewAction(null); setReviewComment(""); } }}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {reviewAction === 'rejetee' ? 'Rejeter la demande' : 'Demander une révision'}
+              {reviewAction === 'approuvee' ? 'Approuver la demande' : reviewAction === 'rejetee' ? 'Rejeter la demande' : 'Demander une révision'}
             </DialogTitle>
             <DialogDescription>
-              {reviewAction === 'rejetee'
-                ? 'Indiquez la raison du rejet de cette demande.'
-                : 'Indiquez les éléments à préciser ou corriger.'}
+              {reviewAction === 'approuvee'
+                ? 'Vous pouvez ajouter un commentaire (optionnel).'
+                : reviewAction === 'rejetee'
+                  ? 'Indiquez la raison du rejet de cette demande.'
+                  : 'Indiquez les éléments à préciser ou corriger.'}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={reviewComment}
             onChange={(e) => setReviewComment(e.target.value)}
-            placeholder="Votre commentaire..."
+            placeholder={reviewAction === 'approuvee' ? "Commentaire optionnel..." : "Votre commentaire..."}
             rows={4}
           />
           <DialogFooter>
@@ -221,14 +229,22 @@ export default function ChangeRequestsSection() {
             </Button>
             <Button
               onClick={handleReviewSubmit}
-              disabled={reviewComment.length < 5 || reviewChangeRequest.isPending}
+              disabled={(reviewAction !== 'approuvee' && reviewComment.length < 5) || reviewChangeRequest.isPending}
               variant={reviewAction === 'rejetee' ? 'destructive' : 'default'}
             >
-              {reviewAction === 'rejetee' ? 'Rejeter' : 'Demander révision'}
+              {reviewAction === 'approuvee' ? 'Approuver' : reviewAction === 'rejetee' ? 'Rejeter' : 'Demander révision'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {editItem && (
+        <AddChangeRequestForm
+          initialData={editItem}
+          open={isEditOpen}
+          onOpenChange={(v) => { setIsEditOpen(v); if (!v) setEditItem(null); }}
+        />
+      )}
 
       <DeleteConfirmDialog
         open={isDeleteOpen}

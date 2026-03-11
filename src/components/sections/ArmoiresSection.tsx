@@ -63,15 +63,11 @@ export default function ArmoiresSection() {
   const [labelType, setLabelType] = useState<"coffrets" | "equipements">("coffrets");
 
   const handleCoffretRowClick = (item: any) => {
-    if (item.qr_token) {
-      navigate(`/baie/${item.qr_token}`);
-    }
+    navigate(`/baie/${item.qr_token}`);
   };
 
   const handleEquipementRowClick = (item: any) => {
-    if (item.qr_token) {
-      navigate(`/equipement/${item.qr_token}`);
-    }
+    navigate(`/equipement/${item.qr_token}`);
   };
 
   const handleDetailsRowClick = (item: any) => {
@@ -136,15 +132,13 @@ export default function ArmoiresSection() {
 
   const coffretActions = (row: any) => (
     <div className="flex items-center gap-1">
-      {row.qr_token && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => { e.stopPropagation(); setQrItem({ ...row, _type: 'coffret' }); }}
-        >
-          <QrCode className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={(e) => { e.stopPropagation(); setQrItem({ ...row, _type: 'coffret' }); }}
+      >
+        <QrCode className="h-4 w-4" />
+      </Button>
       {canWrite && (
         <Button
           variant="ghost"
@@ -160,15 +154,13 @@ export default function ArmoiresSection() {
 
   const equipementActions = (row: any) => (
     <div className="flex items-center gap-1">
-      {row.qr_token && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={(e) => { e.stopPropagation(); setQrItem({ ...row, _type: 'equipement' }); }}
-        >
-          <QrCode className="h-4 w-4" />
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={(e) => { e.stopPropagation(); setQrItem({ ...row, _type: 'equipement' }); }}
+      >
+        <QrCode className="h-4 w-4" />
+      </Button>
       {canWrite && (
         <Button
           variant="ghost"
@@ -192,6 +184,12 @@ export default function ArmoiresSection() {
       <Trash2 className="h-4 w-4" />
     </Button>
   ) : undefined;
+
+  const statusPresets = [
+    { label: "Actif", value: "active" },
+    { label: "Inactif", value: "inactive" },
+    { label: "Maintenance", value: "maintenance" },
+  ];
 
   const coffretTableData = coffrets.map((c: any) => ({
     ...c,
@@ -286,6 +284,7 @@ export default function ArmoiresSection() {
                   <Badge variant="secondary">{value || 0}</Badge>
                 ),
               }}
+              filterPresets={{ status: statusPresets }}
               renderRowActions={coffretActions}
             />
           </TabsContent>
@@ -306,6 +305,7 @@ export default function ArmoiresSection() {
                   <Badge variant="secondary">{value || 0}</Badge>
                 ),
               }}
+              filterPresets={{ status: statusPresets }}
               renderRowActions={equipementActions}
             />
           </TabsContent>
@@ -321,6 +321,7 @@ export default function ArmoiresSection() {
               data={portTableData}
               onRowClick={handleDetailsRowClick}
               onEdit={canWrite ? handleEditPort : undefined}
+              filterPresets={{ status: statusPresets }}
               renderRowActions={deleteAction}
             />
           </TabsContent>
@@ -351,6 +352,7 @@ export default function ArmoiresSection() {
               data={systems}
               onRowClick={handleDetailsRowClick}
               onEdit={canWrite ? handleEditSystem : undefined}
+              filterPresets={{ status: statusPresets }}
               renderRowActions={deleteAction}
             />
           </TabsContent>
@@ -428,10 +430,10 @@ export default function ArmoiresSection() {
 
       <LabelGeneratorDialog
         type={labelType}
-        selectedIds={
+        items={
           labelType === "coffrets"
-            ? coffrets.map((c: any) => c.id)
-            : equipements.map((e: any) => e.id)
+            ? coffrets.map((c: any) => ({ id: c.id, name: c.name, code: c.code }))
+            : equipements.map((e: any) => ({ id: e.id, name: e.name, code: e.equipement_code || e.code || String(e.id) }))
         }
         open={labelDialogOpen}
         onOpenChange={setLabelDialogOpen}

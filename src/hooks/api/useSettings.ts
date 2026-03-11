@@ -11,6 +11,7 @@ export function useSettings() {
       const { data } = await api.get<ApiResponse<SettingsMap>>('/settings');
       return data.data;
     },
+    staleTime: 5 * 60 * 1000,
   });
 }
 

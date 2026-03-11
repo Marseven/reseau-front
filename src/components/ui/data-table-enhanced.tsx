@@ -41,7 +41,7 @@ interface DataTableEnhancedProps {
   filterPresets?: Record<string, { label: string; value: string }[]>;
 }
 
-const usePagination = (data: any[], initialItemsPerPage = 10) => {
+const usePagination = (data: any[], initialItemsPerPage = 15) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(initialItemsPerPage);
 
@@ -192,9 +192,12 @@ export default function DataTableEnhanced({
 
     // Apply column filter
     if (filterColumn && filterValue && filterValue !== '__all__') {
-      filtered = filtered.filter((row) =>
-        String(row[filterColumn]).toLowerCase().includes(filterValue.toLowerCase())
-      );
+      const isPresetFilter = filterPresets && filterPresets[filterColumn];
+      filtered = filtered.filter((row) => {
+        const cellValue = String(row[filterColumn]).toLowerCase();
+        const search = filterValue.toLowerCase();
+        return isPresetFilter ? cellValue === search : cellValue.includes(search);
+      });
     }
 
     return filtered;
@@ -238,7 +241,7 @@ export default function DataTableEnhanced({
     if (column.toLowerCase().includes('état') || column.toLowerCase().includes('status') || column.toLowerCase().includes('etat')) {
       const statusMapping: { [key: string]: "up" | "down" | "warn" | "maintenance" | "ok" | "actif" | "fermee" } = {
         'actif': 'actif',
-        'active': 'actif', 
+        'active': 'actif',
         'up': 'up',
         'en ligne': 'up',
         'maintenance': 'maintenance',
@@ -251,11 +254,17 @@ export default function DataTableEnhanced({
         'alerte': 'warn',
         'ok': 'ok',
         'fermee': 'fermee',
-        'fermée': 'fermee'
+        'fermée': 'fermee',
+        'en attente': 'warn',
+        'approuvée': 'up',
+        'rejetée': 'down',
+        'en révision': 'warn',
       };
       
-      const mappedStatus = statusMapping[stringValue.toLowerCase()] || 'ok';
-      return <StatusBadge status={mappedStatus} />;
+      const lowerValue = stringValue.toLowerCase();
+      const mappedStatus = statusMapping[lowerValue] || 'ok';
+      const useOriginalLabel = !statusMapping[lowerValue];
+      return <StatusBadge status={mappedStatus} label={useOriginalLabel ? undefined : stringValue} />;
     }
     
     return <span className="text-foreground">{stringValue}</span>;

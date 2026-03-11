@@ -39,6 +39,24 @@ export function useCreateChangeRequest() {
   });
 }
 
+export function useUpdateChangeRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }: { id: number; [key: string]: any }) => {
+      const isFormData = payload.formData instanceof FormData;
+      const body = isFormData ? payload.formData : payload;
+      const { data } = await api.put<ApiResponse<ChangeRequest>>(`/change-requests/${id}`, body, isFormData ? {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      } : undefined);
+      return data.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['change-requests'] });
+      qc.invalidateQueries({ queryKey: ['coffrets'] });
+    },
+  });
+}
+
 export function useReviewChangeRequest() {
   const qc = useQueryClient();
   return useMutation({
