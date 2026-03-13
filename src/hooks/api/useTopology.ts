@@ -7,7 +7,7 @@ interface TopologyData {
   edges: Liaison[];
 }
 
-export function useTopology(params?: { classification?: string; coffret_id?: number }) {
+export function useTopology(params?: { classification?: string; coffret_id?: number; zone_id?: number }) {
   return useQuery({
     queryKey: ['topology', params],
     queryFn: async () => {

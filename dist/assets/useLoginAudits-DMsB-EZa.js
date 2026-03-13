@@ -1,1 +1,0 @@
-import{i as n,j as u}from"./index-C6-Jurtr.js";function i(t){return n({queryKey:["login-audits","me",t],queryFn:async()=>{const{data:a}=await u.get("/login-audits/me",{params:t});return a.data}})}function r(t){return n({queryKey:["login-audits",t],queryFn:async()=>{const{data:a}=await u.get("/login-audits",{params:t});return a.data}})}export{r as a,i as u};

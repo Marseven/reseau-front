@@ -111,8 +111,14 @@ export default function AddChangeRequestForm({ coffretId, coffretName, initialDa
           setOpen(false);
         },
         onError: (error: any) => {
-          const message = error?.response?.data?.message || error?.response?.data?.errors?.coffret_id?.[0] || "Erreur lors de la soumission";
-          toast({ title: "Erreur", description: message, variant: "destructive" });
+          const errors = error?.response?.data?.errors;
+          if (errors) {
+            const firstError = Object.values(errors).flat()[0] as string;
+            toast({ title: "Erreur de validation", description: firstError || "Vérifiez les champs du formulaire", variant: "destructive" });
+          } else {
+            const message = error?.response?.data?.message || "Erreur lors de la soumission";
+            toast({ title: "Erreur", description: message, variant: "destructive" });
+          }
         },
       });
     }

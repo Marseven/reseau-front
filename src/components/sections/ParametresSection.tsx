@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, Bell, Shield, Database, Palette, Globe, Loader2 } from "lucide-react";
+import { Save, Bell, Shield, Database, Palette, Globe, Loader2, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useSettings, useUpdateSettings } from "@/hooks/api";
@@ -256,23 +257,83 @@ export default function ParametresSection() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres Réseau</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Paramètres Réseau
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>Configuration du protocole SNMP (Simple Network Management Protocol) utilisé pour superviser et gérer les équipements réseau à distance.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="snmp_community">Communauté SNMP par défaut</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="snmp_community">Communauté SNMP par défaut</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Mot de passe partagé (community string) permettant d'interroger les équipements via SNMP. Par défaut : "public" (lecture seule).</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Input id="snmp_community" placeholder="public" {...form.register("snmp_community")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="snmp_timeout">Timeout SNMP (ms)</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="snmp_timeout">Timeout SNMP (ms)</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Délai d'attente maximum (en millisecondes) avant de considérer qu'un équipement ne répond pas.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Input id="snmp_timeout" type="number" {...form.register("snmp_timeout")} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="snmp_retries">Nombre de tentatives</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="snmp_retries">Nombre de tentatives</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Nombre de tentatives de connexion avant d'abandonner si un équipement ne répond pas.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Input id="snmp_retries" type="number" {...form.register("snmp_retries")} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="auto_discovery">Découverte automatique</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="auto_discovery">Découverte automatique</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p>Active la détection automatique des équipements connectés au réseau via le protocole SNMP.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Controller
                     control={form.control}
                     name="auto_discovery"

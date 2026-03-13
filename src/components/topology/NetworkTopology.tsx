@@ -14,7 +14,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
-import { useTopology } from '@/hooks/api';
+import { useTopology, useZones } from '@/hooks/api';
+import { useRole } from '@/hooks/useRole';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, X, Server, Wifi, MapPin } from 'lucide-react';
@@ -81,14 +82,20 @@ interface EdgeTooltip {
 
 export default function NetworkTopology() {
   const [classification, setClassification] = useState<string>('');
+  const [zoneId, setZoneId] = useState<string>('');
   const [selectedNode, setSelectedNode] = useState<SelectedNodeData | null>(null);
   const [edgeTooltip, setEdgeTooltip] = useState<EdgeTooltip | null>(null);
+
+  const { canWrite } = useRole();
+  const { data: zonesData } = useZones({ per_page: 200 });
+  const zones = zonesData?.data ?? [];
 
   const params = useMemo(() => {
     const p: any = {};
     if (classification) p.classification = classification;
+    if (zoneId) p.zone_id = Number(zoneId);
     return p;
-  }, [classification]);
+  }, [classification, zoneId]);
 
   const { data: topology, isLoading } = useTopology(params);
 
@@ -200,6 +207,23 @@ export default function NetworkTopology() {
             <SelectItem value="OT">OT</SelectItem>
           </SelectContent>
         </Select>
+
+        {canWrite && (
+          <>
+            <span className="text-sm font-medium">Zone :</span>
+            <Select value={zoneId || '__all__'} onValueChange={(v) => setZoneId(v === '__all__' ? '' : v)}>
+              <SelectTrigger className="w-52">
+                <SelectValue placeholder="Toutes les zones" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Toutes les zones</SelectItem>
+                {zones.map((z: any) => (
+                  <SelectItem key={z.id} value={String(z.id)}>{z.name} ({z.code})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
       </div>
 
       <div className="flex gap-3">

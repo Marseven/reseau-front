@@ -29,7 +29,7 @@ export function useCreateCoffret() {
     mutationFn: async (payload: Partial<Coffret> | FormData) => {
       const isFormData = payload instanceof FormData;
       const { data } = await api.post<ApiResponse<Coffret>>('/coffrets', payload, isFormData ? {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       } : undefined);
       return data.data;
     },
@@ -56,7 +56,7 @@ export function useUploadCoffretPhoto() {
       formData.append('photo', photo);
       formData.append('_method', 'PUT');
       const { data } = await api.post<ApiResponse<Coffret>>(`/coffrets/${id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       });
       return data.data;
     },

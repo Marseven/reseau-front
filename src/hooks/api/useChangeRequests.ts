@@ -28,7 +28,7 @@ export function useCreateChangeRequest() {
   return useMutation({
     mutationFn: async (formData: FormData) => {
       const { data } = await api.post<ApiResponse<ChangeRequest>>('/change-requests', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       });
       return data.data;
     },
@@ -46,7 +46,7 @@ export function useUpdateChangeRequest() {
       const isFormData = payload.formData instanceof FormData;
       const body = isFormData ? payload.formData : payload;
       const { data } = await api.put<ApiResponse<ChangeRequest>>(`/change-requests/${id}`, body, isFormData ? {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': undefined },
       } : undefined);
       return data.data;
     },
